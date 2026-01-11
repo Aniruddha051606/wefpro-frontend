@@ -1,36 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar'; // <--- Import Navbar
+import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout'; // <--- NEW PAGE
 import Tracking from './pages/Tracking';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import PrivateRoute from './components/PrivateRoute';
 
 function App() {
-  // We manage cart count here to show it in the Navbar
-  const [cartCount, setCartCount] = useState(2); // Starting with 2 for demo
+  // 1. LOAD CART FROM STORAGE (Real User Memory)
+  const [cartItems, setCartItems] = useState(() => {
+    const saved = localStorage.getItem("wefpro_cart");
+    return saved ? JSON.parse(saved) : []; // Start EMPTY if nothing saved
+  });
+
+  // 2. SAVE ON EVERY CHANGE
+  useEffect(() => {
+    localStorage.setItem("wefpro_cart", JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  const addToCart = (product) => {
+    setCartItems((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.id === product.id ? { ...item, qty: item.qty + 1 } : item
+        );
+      }
+      return [...prev, { ...product, qty: 1 }];
+    });
+  };
+
+  const removeFromCart = (id) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Calculate total items for Badge
+  const totalItems = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
   return (
     <Router>
-      <div className="bg-stone-50 min-h-screen">
-        {/* ⚡ Navbar sits OUTSIDE Routes so it stays visible */}
-        <Navbar cartCount={cartCount} /> 
+      <div className="bg-black min-h-screen text-stone-100 font-sans selection:bg-red-900 selection:text-white">
+        <Navbar cartCount={totalItems} /> 
         
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/cart" element={<Cart />} />
+          <Route path="/" element={<Home addToCart={addToCart} />} />
+          <Route path="/cart" element={<Cart cartItems={cartItems} removeFromCart={removeFromCart} />} />
+          <Route path="/checkout" element={<Checkout cartItems={cartItems} />} />
           <Route path="/track" element={<Tracking />} />
           <Route path="/login" element={<Login />} />
-          <Route 
-            path="/admin" 
-            element={
-              <PrivateRoute>
-                <Admin />
-              </PrivateRoute>
-            } 
-          />
+          <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
         </Routes>
       </div>
     </Router>

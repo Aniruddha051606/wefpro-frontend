@@ -1,131 +1,62 @@
-import React, { useState } from 'react';
-import { Trash2, CreditCard } from 'lucide-react';
+import React from 'react';
+import { Trash2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const Cart = () => {
-  const [loading, setLoading] = useState(false);
+const Cart = ({ cartItems, removeFromCart }) => {
   
-  // 1. STATE FOR FORM DATA (Stores what user types)
-  const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    address: '',
-    city: '',
-    pincode: ''
-  });
-
-  // Mock Cart Data
-  const [cartItems] = useState([
-    { id: 1, name: "Premium Organic Strawberry Jam (250g)", price: 249, qty: 2, image: "https://images.unsplash.com/photo-1600423115367-87ea79269cd3?q=80&w=200" }
-  ]);
-
   const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
-  const total = subtotal + (subtotal > 499 ? 0 : 40);
 
-  // 2. HANDLER: Updates state when user types
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handlePayment = async () => {
-    // Basic Validation
-    if(!formData.fullName || !formData.address) {
-      alert("Please fill in your Shipping Details first!");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch('http://localhost:5000/api/create-invoice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId: "WF-" + Math.floor(Math.random() * 10000),
-          amount: total,
-          // 3. SEND REAL DATA TO BACKEND
-          customerName: formData.fullName,
-          customerAddress: formData.address,
-          customerCity: formData.city,
-          customerPincode: formData.pincode
-        })
-      });
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Invoice-${formData.fullName}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      
-    window.location.href = `/track?id=${orderData.id}`; // ✅ CORRECT (Backticks)
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Server error.");
-    }
-    setLoading(false);
-  };
+  if (cartItems.length === 0) {
+      return (
+          <div className="min-h-screen flex items-center justify-center flex-col bg-stone-950 text-white">
+              <h1 className="text-3xl font-light tracking-wide mb-4">Your Bag is Empty</h1>
+              <Link to="/" className="text-red-500 border-b border-red-500 pb-1 hover:text-red-400">Continue Shopping</Link>
+          </div>
+      )
+  }
 
   return (
-    <div className="min-h-screen bg-stone-50 p-4 md:p-8 font-sans">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-stone-800 mb-8">Your Cart</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
-          <div className="md:col-span-2 space-y-6">
-            {/* Cart Items (Hidden for brevity, same as before) */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
-               <h2 className="font-bold mb-4">Items</h2>
+    <div className="min-h-screen bg-stone-950 text-stone-200 p-8 pt-24">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-serif mb-12 tracking-wider">Shopping Bag</h1>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Items List */}
+          <div className="lg:col-span-2 space-y-8">
                {cartItems.map((item) => (
-                <div key={item.id} className="flex justify-between border-b py-2">
-                  <span>{item.name} (x{item.qty})</span>
-                  <span>₹{item.price * item.qty}</span>
+                <div key={item.id} className="flex gap-6 border-b border-stone-800 pb-8">
+                  <div className="w-24 h-24 bg-stone-900 rounded overflow-hidden">
+                    <img src={item.image} className="w-full h-full object-cover opacity-80" alt={item.name}/>
+                  </div>
+                  <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-serif text-xl">{item.name}</h3>
+                        <button onClick={() => removeFromCart(item.id)} className="text-stone-500 hover:text-red-500 transition">
+                            <Trash2 size={18} />
+                        </button>
+                      </div>
+                      <p className="text-stone-500 mt-1">{item.desc}</p>
+                      <p className="text-stone-400 mt-4 text-sm">Qty: {item.qty} &times; ₹{item.price}</p>
+                  </div>
                 </div>
                ))}
-            </div>
-
-            {/* 4. CONNECTED FORM INPUTS */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
-              <h2 className="text-lg font-semibold mb-4">Shipping Details</h2>
-              <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input 
-                  name="fullName" value={formData.fullName} onChange={handleChange}
-                  type="text" placeholder="Full Name" className="p-3 border rounded-lg" 
-                />
-                <input 
-                  name="phone" value={formData.phone} onChange={handleChange}
-                  type="text" placeholder="Phone Number" className="p-3 border rounded-lg" 
-                />
-                <input 
-                  name="address" value={formData.address} onChange={handleChange}
-                  type="text" placeholder="Address Line 1" className="md:col-span-2 p-3 border rounded-lg" 
-                />
-                <input 
-                  name="city" value={formData.city} onChange={handleChange}
-                  type="text" placeholder="City" className="p-3 border rounded-lg" 
-                />
-                <input 
-                  name="pincode" value={formData.pincode} onChange={handleChange}
-                  type="text" placeholder="Pincode" className="p-3 border rounded-lg" 
-                />
-              </form>
-            </div>
           </div>
 
-          {/* Payment Summary */}
-          <div className="md:col-span-1">
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-stone-100 sticky top-4">
-              <h2 className="text-xl font-bold mb-6">Total: ₹{total}</h2>
-              <button 
-                onClick={handlePayment} 
-                disabled={loading}
-                className="w-full bg-red-600 text-white py-4 rounded-xl font-bold hover:bg-red-700 transition flex justify-center space-x-2"
-              >
-                {loading ? "Processing..." : "Pay & Get Invoice"}
-              </button>
+          {/* Summary Section */}
+          <div className="bg-stone-900/50 p-8 rounded-2xl h-fit border border-stone-800 backdrop-blur-sm">
+            <h2 className="text-xl font-serif mb-6">Order Summary</h2>
+            <div className="flex justify-between mb-4 text-stone-400"><span>Subtotal</span><span>₹{subtotal}</span></div>
+            <div className="flex justify-between mb-8 text-stone-400"><span>Shipping</span><span>Calculated at next step</span></div>
+            
+            <div className="flex justify-between text-2xl font-serif text-white pt-6 border-t border-stone-800 mb-8">
+              <span>Total</span>
+              <span>₹{subtotal}</span>
             </div>
-          </div>
 
+            <Link to="/checkout" className="block w-full bg-white text-black py-4 rounded-full font-bold text-center hover:bg-stone-200 transition flex justify-center items-center gap-2">
+              Proceed to Checkout <ArrowRight size={18} />
+            </Link>
+          </div>
         </div>
       </div>
     </div>

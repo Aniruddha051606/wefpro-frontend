@@ -1,98 +1,93 @@
-import React, { useState } from 'react';
-import { ShoppingBag, Star, Truck, ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { ShoppingBag, Star, ArrowDown } from 'lucide-react';
 
-const Home = () => {
-  const [qty, setQty] = useState(1);
+const Home = ({ addToCart }) => {
+  
+  const products = [
+    { id: 1, name: "Velvet Strawberry", price: 249, image: "https://images.unsplash.com/photo-1621251347628-8798cb3cb602?q=80&w=400", desc: "Harvested at dawn. Crushed by hand." },
+    { id: 2, name: "Midnight Honey", price: 399, image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?q=80&w=400", desc: "Wild foraged from the deep forest." },
+    { id: 3, name: "Scarlet Blend", price: 199, image: "https://images.unsplash.com/photo-1600423115367-87ea79269cd3?q=80&w=400", desc: "A symphony of five rare berries." }
+  ];
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-800 font-sans">
+    <div className="bg-black text-white font-sans">
       
-      {/* 1. NAVBAR */}
-      <nav className="p-5 flex justify-between items-center bg-white shadow-sm sticky top-0 z-50">
-        <h1 className="text-2xl font-bold text-red-600 tracking-tighter">WEFPRO.</h1>
-        <Link to="/cart" className="relative p-2 bg-stone-100 rounded-full hover:bg-stone-200">
-          <ShoppingBag size={24} />
-          {/* Badge showing 1 item for demo */}
-          <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">1</span>
-        </Link>
-      </nav>
-
-      {/* 2. MAIN PRODUCT SECTION */}
-      <main className="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-12 mt-4">
-        
-        {/* LEFT: Product Image */}
-        <div className="relative">
-            <div className="bg-red-100 rounded-3xl h-96 md:h-[500px] flex items-center justify-center shadow-inner overflow-hidden">
-                <img 
-                    src="https://images.unsplash.com/photo-1600423115367-87ea79269cd3?q=80&w=1000&auto=format&fit=crop" 
-                    alt="Wefpro Strawberry Jam" 
-                    className="object-cover h-full w-full hover:scale-105 transition-transform duration-500"
-                />
-            </div>
+      {/* 1. CINEMATIC HERO SECTION (Full Screen) */}
+      <div className="relative h-screen w-full overflow-hidden">
+        {/* Background Image/Video */}
+        <div className="absolute inset-0">
+            <img 
+                src="https://images.unsplash.com/photo-1599940824399-b87987ce179a?q=80&w=2000" 
+                className="w-full h-full object-cover opacity-60" 
+                alt="Luxury Jam Background"
+            />
+            {/* Gradient Overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40"></div>
         </div>
 
-        {/* RIGHT: Product Details */}
-        <div className="flex flex-col justify-center space-y-6">
-          
-          {/* Title & Rating */}
-          <div>
-            <div className="flex items-center space-x-1 text-yellow-500 mb-2">
-              <Star fill="currentColor" size={18} />
-              <Star fill="currentColor" size={18} />
-              <Star fill="currentColor" size={18} />
-              <Star fill="currentColor" size={18} />
-              <Star fill="currentColor" size={18} />
-              <span className="text-stone-400 text-sm ml-2">(124 Reviews)</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black text-stone-900 leading-tight">
-              Premium Organic <span className="text-red-600">Strawberry Jam</span>
+        {/* Floating Content */}
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
+            <p className="text-red-500 tracking-[0.3em] text-sm uppercase mb-4 animate-fade-in-up">The Collection</p>
+            <h1 className="text-6xl md:text-8xl font-serif font-bold mb-6 tracking-tight">
+                Pure. <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600">Organic.</span>
             </h1>
-            <p className="text-xl text-stone-500 mt-2 font-medium">From Mahabaleshwar Farms</p>
-          </div>
-
-          {/* Price */}
-          <div className="flex items-end space-x-3 border-b pb-6 border-stone-200">
-            <span className="text-4xl font-bold text-stone-900">₹249</span>
-            <span className="text-lg text-stone-400 line-through">₹399</span>
-            <span className="text-green-600 font-bold bg-green-100 px-2 py-1 rounded text-sm">38% OFF</span>
-          </div>
-
-          {/* Description */}
-          <p className="text-stone-600 leading-relaxed">
-            Experience the taste of real fruit. Wefpro jam is made with 100% organic strawberries, zero preservatives, and traditional slow-cooking methods to preserve the natural sweetness. Perfect for your morning toast.
-          </p>
-
-          {/* Quantity & Cart Actions */}
-          <div className="flex space-x-4 pt-4">
-            <div className="flex items-center border border-stone-300 rounded-lg">
-              <button onClick={() => setQty(Math.max(1, qty-1))} className="px-4 py-3 hover:bg-stone-100">-</button>
-              <span className="px-4 font-bold">{qty}</span>
-              <button onClick={() => setQty(qty+1)} className="px-4 py-3 hover:bg-stone-100">+</button>
-            </div>
-            
-            {/* The Link to Cart Page */}
-            <Link to="/cart" className="flex-1">
-                <button className="w-full h-full bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition shadow-lg hover:shadow-red-500/30">
-                Add to Cart - ₹{249 * qty}
-                </button>
-            </Link>
-          </div>
-
-          {/* Trust Badges */}
-          <div className="grid grid-cols-2 gap-4 pt-6">
-            <div className="flex items-center space-x-3 bg-white p-3 rounded-xl shadow-sm border border-stone-100">
-              <Truck className="text-red-500" />
-              <span className="text-sm font-semibold text-stone-700">Fast Delivery</span>
-            </div>
-            <div className="flex items-center space-x-3 bg-white p-3 rounded-xl shadow-sm border border-stone-100">
-              <ShieldCheck className="text-red-500" />
-              <span className="text-sm font-semibold text-stone-700">Organic Certified</span>
-            </div>
-          </div>
-
+            <p className="text-stone-300 max-w-lg text-lg mb-10 font-light leading-relaxed">
+                Experience the taste of nature's finest ingredients, preserved in time for your absolute pleasure.
+            </p>
+            <button 
+                onClick={() => document.getElementById('shop').scrollIntoView({ behavior: 'smooth' })}
+                className="px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white hover:bg-white hover:text-black transition duration-500 flex items-center gap-2"
+            >
+                Explore Collection <ArrowDown size={18}/>
+            </button>
         </div>
-      </main>
+      </div>
+
+      {/* 2. THE SHOWCASE (Minimalist Grid) */}
+      <div id="shop" className="max-w-7xl mx-auto px-6 py-24">
+        <div className="flex justify-between items-end mb-16">
+            <h2 className="text-4xl font-serif">Curated Selections</h2>
+            <p className="text-stone-500 hidden md:block">Fall / Winter 2026</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-16">
+          {products.map((product) => (
+            <div key={product.id} className="group cursor-pointer">
+              {/* Image Container with Zoom Effect */}
+              <div className="h-[400px] overflow-hidden rounded-sm mb-6 relative">
+                  <img 
+                    src={product.image} 
+                    alt={product.name} 
+                    className="w-full h-full object-cover transform group-hover:scale-110 transition duration-700 ease-out" 
+                  />
+                  {/* Quick Add Button appearing on hover */}
+                  <button 
+                    onClick={() => addToCart(product)}
+                    className="absolute bottom-4 right-4 bg-white text-black p-3 rounded-full opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition duration-500 shadow-xl"
+                  >
+                    <ShoppingBag size={20} />
+                  </button>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between items-baseline">
+                    <h3 className="text-xl font-medium text-stone-100">{product.name}</h3>
+                    <span className="text-lg text-stone-400 font-light">₹{product.price}</span>
+                </div>
+                <p className="text-sm text-stone-500 font-light">{product.desc}</p>
+                <div className="flex text-yellow-600 gap-1 text-xs">
+                    <Star size={12} fill="currentColor"/>
+                    <Star size={12} fill="currentColor"/>
+                    <Star size={12} fill="currentColor"/>
+                    <Star size={12} fill="currentColor"/>
+                    <Star size={12} fill="currentColor"/>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 };
