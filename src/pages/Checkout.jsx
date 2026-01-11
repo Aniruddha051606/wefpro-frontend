@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock } from 'lucide-react';
-// import { API_URL } from '../config'; // <--- Not needed for demo mode
 
 const Checkout = ({ cartItems }) => {
   const [loading, setLoading] = useState(false);
@@ -13,27 +12,42 @@ const Checkout = ({ cartItems }) => {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // ⚡ DEMO MODE PAYMENT HANDLER ⚡
   const handlePayment = async (e) => {
-    e.preventDefault(); // Prevent form submit refresh
-    
-    // Basic Validation
+    e.preventDefault();
     if(!formData.fullName || !formData.address || !formData.phone) {
-        return alert("Please fill in all details to proceed.");
+        return alert("Please fill in all details.");
     }
     
     setLoading(true);
 
-    // 🕒 SIMULATE SERVER DELAY (2 Seconds)
-    // This makes it feel like a "Real" payment is processing
+    // 🕒 SIMULATE PAYMENT PROCESS
     setTimeout(() => {
+        const orderId = "ORD-" + Math.floor(Math.random() * 1000000);
         
-        // 1. Generate a Fake Order ID (e.g., order_839201)
-        const fakeOrderId = "order_" + Math.floor(Math.random() * 1000000);
+        // 1. CREATE THE REAL ORDER OBJECT
+        const newOrder = {
+            _id: Date.now(), // Unique ID based on time
+            orderId: orderId,
+            customerName: formData.fullName,
+            amount: total,
+            status: "Processing", // Default status
+            date: new Date().toLocaleDateString()
+        };
+
+        // 2. SAVE TO "DATABASE" (Local Storage)
+        // Get existing orders or start empty
+        const existingOrders = JSON.parse(localStorage.getItem("wefpro_orders") || "[]");
+        // Add new order to the TOP of the list
+        existingOrders.unshift(newOrder);
+        // Save back
+        localStorage.setItem("wefpro_orders", JSON.stringify(existingOrders));
         
-        // 2. Redirect to Tracking Page
+        // 3. CLEAR CART (Optional but realistic)
+        localStorage.setItem("wefpro_cart", "[]");
+
+        // 4. REDIRECT
         setLoading(false);
-        window.location.href = `/track?id=${fakeOrderId}`;
+        window.location.href = `/track?id=${orderId}`;
         
     }, 2000);
   };
@@ -69,7 +83,7 @@ const Checkout = ({ cartItems }) => {
           </form>
         </div>
 
-        {/* Right: Summary (Visual) */}
+        {/* Right: Summary */}
         <div className="bg-stone-900 p-8 rounded-2xl h-fit border border-stone-800">
             <h3 className="text-lg font-serif mb-6 text-stone-400">Order Details</h3>
             {cartItems.map(item => (

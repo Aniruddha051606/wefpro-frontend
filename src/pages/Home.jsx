@@ -10,27 +10,41 @@ import lifestyleImg from '../assets/jar-lifestyle.jpg';
 
 const Home = ({ addToCart }) => {
   const [scrollY, setScrollY] = useState(0);
+  const [dynamicPrice, setDynamicPrice] = useState(249); // Default fallback price
   const videoRef = useRef(null);
 
+  // ⚡ FETCH REAL PRICE FROM ADMIN PANEL
+  useEffect(() => {
+    const savedPrice = localStorage.getItem("wefpro_product_price");
+    if (savedPrice) {
+        setDynamicPrice(parseInt(savedPrice));
+    }
+  }, []);
+
+  // PRODUCT DATA
   const product = { 
-    id: 1, name: "WefPro Natural Strawberry Jam", 
-    price: 249, image: heroImg, desc: "74% Real Strawberries." 
+    id: 1, 
+    name: "WefPro Natural Strawberry Jam", 
+    price: dynamicPrice, // <--- USING DYNAMIC PRICE
+    image: heroImg, 
+    desc: "74% Real Strawberries." 
   };
 
+  // TRACK SCROLL
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Force Autoplay Logic
+  // FORCE VIDEO PLAY
   useEffect(() => {
     if (videoRef.current) {
         videoRef.current.play().catch(e => console.log("Autoplay issue:", e));
     }
   }, []);
 
-  // Animation Values
+  // ANIMATION MATH
   const opacity = Math.max(1 - (scrollY / 800), 0); 
   const scale = 1 + (scrollY * 0.0005); 
 
@@ -49,7 +63,6 @@ const Home = ({ addToCart }) => {
                 className="w-full h-full object-cover opacity-80"
                 style={{ transform: `scale(${scale})` }}
              >
-                {/* 3. USE THE IMPORTED VIDEO VARIABLE */}
                 <source src={heroVideo} type="video/mp4" />
              </video>
          </div>
@@ -67,7 +80,7 @@ const Home = ({ addToCart }) => {
 
       {/* ================= SCROLL CONTENT ================= */}
       
-      {/* Spacer to see the video */}
+      {/* Spacer */}
       <div className="h-screen w-full"></div>
 
       {/* Product Section */}
@@ -96,6 +109,7 @@ const Home = ({ addToCart }) => {
                   </div>
 
                   <div className="flex items-center gap-6 pt-4">
+                      {/* PRICE IS NOW DYNAMIC */}
                       <span className="text-4xl font-light">₹{product.price}</span>
                       <button onClick={() => addToCart(product)} className="flex-1 bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-red-600 hover:text-white transition duration-300 flex justify-center items-center gap-2">
                         Add to Cart <ShoppingBag size={20} />
