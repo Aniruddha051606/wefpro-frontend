@@ -58,8 +58,7 @@ const Cart = () => {
       document.body.appendChild(link);
       link.click();
       
-      window.location.href = '/track?id=${orderId}';
-
+    window.location.href = `/track?id=${orderData.id}`; // ✅ CORRECT (Backticks)
     } catch (error) {
       console.error("Error:", error);
       alert("Server error.");
