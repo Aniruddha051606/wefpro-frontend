@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock } from 'lucide-react';
 
-const Checkout = ({ cartItems }) => {
+// ⚠️ FIX: Added 'clearCart' to the props here 👇
+const Checkout = ({ cartItems, clearCart }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ fullName: '', phone: '', address: '', city: '', pincode: '' });
 
@@ -24,16 +25,16 @@ const Checkout = ({ cartItems }) => {
     setTimeout(() => {
         const orderId = "ORD-" + Math.floor(Math.random() * 1000000);
         
-        // 1. CREATE THE FULL ORDER OBJECT (Now with Address!)
+        // 1. CREATE THE FULL ORDER OBJECT
         const newOrder = {
             _id: Date.now(),
             orderId: orderId,
             customerName: formData.fullName,
-            phone: formData.phone,           // <--- ADDED
-            address: formData.address,       // <--- ADDED
-            city: formData.city,             // <--- ADDED
-            pincode: formData.pincode,       // <--- ADDED
-            items: cartItems,                // <--- ADDED (Save what they bought)
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            pincode: formData.pincode,
+            items: cartItems,
             amount: total,
             status: "Processing",
             date: new Date().toLocaleDateString()
@@ -44,8 +45,10 @@ const Checkout = ({ cartItems }) => {
         existingOrders.unshift(newOrder);
         localStorage.setItem("wefpro_orders", JSON.stringify(existingOrders));
         
-        // 3. CLEAR CART
-        clearCart(); // Make sure this prop is passed from App.jsx!
+        // 3. CLEAR CART (This will work now!)
+        if (clearCart) {
+            clearCart();
+        }
         
         // 4. REDIRECT
         setLoading(false);
@@ -53,7 +56,6 @@ const Checkout = ({ cartItems }) => {
         
     }, 2000);
   };
-     
 
   return (
     <div className="min-h-screen bg-stone-950 text-stone-200 p-6 md:p-12 font-sans flex items-center justify-center">
