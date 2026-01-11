@@ -1,186 +1,168 @@
-import React, { useEffect } from 'react';
-import { ShoppingBag, Star, ArrowRight, CheckCircle, Leaf, Droplets, MapPin } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ShoppingBag, Star, ArrowRight, Droplets, Leaf } from 'lucide-react';
 
-// IMPORT YOUR ASSETS
+// YOUR ASSETS
 import heroImg from '../assets/jar-front.jpg'; 
 import lifestyleImg from '../assets/jar-lifestyle.jpg';
-import backImg from '../assets/jar-back.jpg'; 
 
 const Home = ({ addToCart }) => {
-  
+  const [scrollY, setScrollY] = useState(0);
+  const containerRef = useRef(null);
+
+  // 🍓 PRODUCT DATA
   const product = { 
     id: 1, 
     name: "WefPro Natural Strawberry Jam", 
     price: 249, 
     image: heroImg, 
-    desc: "74% Real Strawberries. No Artificial Colours." 
+    desc: "74% Real Strawberries." 
   };
 
-  // 🎥 SCROLL OBSERVER (Triggers animations when you scroll)
+  // 🖱️ TRACK SCROLL
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('active');
-        }
-      });
-    }, { threshold: 0.1 }); // Trigger when 10% of item is visible
-
-    document.querySelectorAll('.reveal, .reveal-left').forEach((el) => observer.observe(el));
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // 🧮 CALCULATE ANIMATIONS BASED ON SCROLL
+  // These values change from 0 to 1 as you scroll down
+  const progress = Math.min(scrollY / 1000, 2); // Cap at 2
+  
+  // 1. Jar Animation (Zooms in then slides left)
+  const jarScale = 1 + (progress * 0.2); // Grows slightly
+  const jarOpacity = Math.max(1 - (scrollY / 1500), 0); // Fades out eventually
+  
+  // 2. Floating Elements (Parallax)
+  const floatUp = scrollY * -0.2; 
+  const floatDown = scrollY * 0.1;
+
   return (
-    <div className="bg-black text-white font-sans overflow-x-hidden selection:bg-red-900 selection:text-white">
+    <div ref={containerRef} className="bg-black text-white font-sans overflow-x-hidden selection:bg-red-500">
       
-      {/* 1. HERO SECTION */}
-      <div className="min-h-screen flex flex-col md:flex-row items-center relative overflow-hidden">
-        
-        {/* Background Gradient Blob for Atmosphere */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-900/20 blur-[120px] rounded-full pointer-events-none"></div>
+      {/* 🟢 STICKY STAGE (The Jar stays fixed while you scroll) */}
+      <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
+         {/* THE GLOW BEHIND JAR */}
+         <div className="absolute w-[600px] h-[600px] bg-red-900/20 blur-[100px] rounded-full transition-all duration-700"
+              style={{ opacity: 1 - progress }} 
+         ></div>
 
-        {/* Left: Text Content */}
-        <div className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-20 py-20 z-10">
-          <div className="animate-fade-in-up">
-            <div className="flex items-center gap-3 mb-6">
-                <span className="bg-gradient-to-r from-red-600 to-red-800 text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase shadow-lg shadow-red-900/50">
-                  Best Seller
-                </span>
-                <span className="text-stone-400 text-xs tracking-[0.2em] uppercase">Batch No. 215</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-8xl font-serif font-bold mb-8 leading-none tracking-tight">
-              Pure <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-rose-900">Passion.</span>
-            </h1>
-            
-            <p className="text-stone-300 text-lg mb-10 leading-relaxed max-w-md border-l-2 border-red-800 pl-6 opacity-80">
-              "Experience the nostalgia of Mahabaleshwar." <br/>
-              Handcrafted with <strong className="text-white">74.63% Real Strawberries</strong>.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
-              <span className="text-5xl font-thin text-white tracking-tighter">₹{product.price}</span>
-              <button 
-                onClick={() => addToCart(product)}
-                className="group bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-red-600 hover:text-white transition-all duration-500 flex items-center gap-3 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(220,38,38,0.6)]"
-              >
-                Add to Cart 
-                <ShoppingBag size={20} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Floating Hero Image */}
-        <div className="w-full md:w-1/2 h-[50vh] md:h-screen flex items-center justify-center relative">
-            {/* The Jar Floats Up and Down */}
-            <img 
-                src={heroImg} 
-                alt="WefPro Jar" 
-                className="w-3/4 md:w-2/3 object-contain drop-shadow-[0_20px_50px_rgba(220,38,38,0.15)] animate-float"
-            />
-        </div>
+         {/* 🍓 THE HERO JAR (Animated) */}
+         <img 
+            src={heroImg} 
+            alt="WefPro Jar" 
+            className="w-[60vw] md:w-[25vw] object-contain drop-shadow-2xl transition-transform duration-100 ease-out"
+            style={{ 
+                transform: `scale(${jarScale}) translateY(${scrollY * 0.05}px)`,
+                opacity: scrollY > 1200 ? 0 : 1 // Disappears at the very end
+            }}
+         />
       </div>
 
-      {/* 2. LIFESTYLE SECTION (Scroll Reveal) */}
-      <div className="py-32 bg-stone-950 relative">
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
+      {/* ================= SCROLL SECTIONS ================= */}
+      
+      {/* SECTION 1: INTRO (Content sits ON TOP of sticky jar) */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center text-center pt-20 pointer-events-none">
+          <div className="animate-fade-in-up mix-blend-difference text-white">
+            <h1 className="text-6xl md:text-9xl font-serif font-black tracking-tighter mb-4"
+                style={{ transform: `translateY(${floatUp}px)`, opacity: 1 - progress }}
+            >
+              WEFPRO
+            </h1>
+            <p className="text-xl md:text-2xl font-light tracking-[0.5em] uppercase text-red-500"
+               style={{ transform: `translateY(${floatUp * 1.2}px)`, opacity: 1 - progress }}
+            >
+              The Real Taste
+            </p>
+          </div>
+          
+          {/* "Scroll Down" Indicator */}
+          <div className="absolute bottom-10 animate-bounce text-stone-500 text-xs uppercase tracking-widest">
+            Scroll to Explore
+          </div>
+      </div>
+
+      {/* SECTION 2: DECONSTRUCTION (Ingredients "Float" in) */}
+      <div className="relative z-10 min-h-screen flex items-center justify-between px-6 md:px-20 pointer-events-none">
+          
+          {/* Left Floating Text */}
+          <div className="w-1/2 md:w-1/3 space-y-32 transition-all duration-500"
+               style={{ 
+                 opacity: progress > 0.3 ? 1 : 0, 
+                 transform: `translateX(${progress > 0.3 ? 0 : -50}px)`
+               }}
+          >
+              <div className="text-right">
+                  <div className="text-red-500 mb-2"><Droplets size={40} className="ml-auto"/></div>
+                  <h3 className="text-4xl font-serif font-bold">74% Fruit</h3>
+                  <p className="text-stone-400 text-sm">Real Strawberries, not pulp.</p>
+              </div>
+          </div>
+
+          {/* Right Floating Text */}
+          <div className="w-1/2 md:w-1/3 space-y-32 transition-all duration-500"
+               style={{ 
+                 opacity: progress > 0.3 ? 1 : 0, 
+                 transform: `translateX(${progress > 0.3 ? 0 : 50}px)`
+               }}
+          >
+              <div className="text-left">
+                  <div className="text-green-500 mb-2"><Leaf size={40}/></div>
+                  <h3 className="text-4xl font-serif font-bold">100% Natural</h3>
+                  <p className="text-stone-400 text-sm">Farm fresh, zero chemicals.</p>
+              </div>
+          </div>
+      </div>
+
+      {/* SECTION 3: LIFESTYLE & BUY (Solid Background covers the sticky jar) */}
+      <div className="relative z-20 bg-stone-950 min-h-screen border-t border-stone-800 flex items-center">
+          <div className="max-w-6xl mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
               
-              {/* Image Slides in from Left */}
-              <div className="reveal-left relative rounded-3xl overflow-hidden shadow-2xl border border-stone-800/50 group">
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition duration-700 z-10"></div>
+              {/* Image Reveal */}
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-stone-800 group">
                   <img 
                     src={lifestyleImg} 
                     alt="Breakfast" 
                     className="w-full h-auto object-cover transform group-hover:scale-110 transition duration-[2000ms]" 
                   />
-                  <div className="absolute bottom-8 left-8 z-20">
-                      <p className="text-white font-serif text-3xl">Morning Rituals</p>
-                      <p className="text-stone-300 text-sm">Perfect with toast, pancakes, or just a spoon.</p>
-                  </div>
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition duration-500"></div>
               </div>
 
-              {/* Text Fades Up */}
-              <div className="reveal space-y-12">
-                  <h2 className="text-4xl md:text-6xl font-serif leading-tight">
-                    Tastes like <br/>
-                    <span className="text-red-500">Real Fruit</span>,<br/>
-                    Not Sugar.
+              {/* The "Buy" Panel */}
+              <div className="space-y-8">
+                  <h2 className="text-5xl md:text-7xl font-serif font-bold leading-none">
+                    Morning <br/><span className="text-red-600">Essence.</span>
                   </h2>
+                  <p className="text-stone-400 text-lg leading-relaxed border-l-2 border-red-900 pl-6">
+                    Handmade in small batches in Mahabaleshwar. 
+                    The perfect texture for your toast, pancakes, or spoon.
+                  </p>
                   
-                  <div className="grid grid-cols-1 gap-8">
-                      <div className="flex gap-6 items-start hover:bg-white/5 p-4 rounded-xl transition duration-300">
-                          <div className="p-4 bg-stone-900 rounded-full text-red-500"><Droplets size={28}/></div>
-                          <div>
-                              <h3 className="font-bold text-xl mb-2">High Fruit Content</h3>
-                              <p className="text-stone-400 leading-relaxed">Most commercial jams are 45% fruit. We pack 74% strawberries into every jar.</p>
-                          </div>
+                  <div className="flex items-center gap-6 pt-8">
+                      <div>
+                        <p className="text-stone-500 text-xs uppercase tracking-widest">Price</p>
+                        <p className="text-4xl font-bold text-white">₹{product.price}</p>
                       </div>
-
-                      <div className="flex gap-6 items-start hover:bg-white/5 p-4 rounded-xl transition duration-300">
-                          <div className="p-4 bg-stone-900 rounded-full text-green-500"><Leaf size={28}/></div>
-                          <div>
-                              <h3 className="font-bold text-xl mb-2">Clean Label</h3>
-                              <p className="text-stone-400 leading-relaxed">Ingredients you can read: Strawberry, Sugar, Lime Juice, Pectin. Nothing else.</p>
-                          </div>
-                      </div>
+                      
+                      <button 
+                        onClick={() => addToCart(product)}
+                        className="bg-white text-black px-10 py-5 rounded-full font-bold hover:bg-red-600 hover:text-white transition duration-300 flex items-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+                      >
+                        Add to Cart <ShoppingBag size={20} />
+                      </button>
                   </div>
+
+                  <a 
+                    href="https://www.amazon.in/WefPro-Natural-Strawberry-Traditional-Handmade/dp/B0G1GNXVY9" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block text-stone-500 hover:text-white text-sm mt-4 flex items-center gap-2 transition"
+                  >
+                    View on Amazon.in <ArrowRight size={14}/>
+                  </a>
               </div>
 
           </div>
-      </div>
-
-      {/* 3. TRANSPARENCY SECTION (Back Label) */}
-      <div className="py-32 bg-black border-t border-stone-900">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-            <span className="text-red-500 tracking-widest uppercase text-sm font-bold mb-4 block reveal">Complete Transparency</span>
-            <h2 className="text-4xl md:text-5xl font-serif mb-16 reveal">Read the Label. We hide nothing.</h2>
-            
-            <div className="relative reveal group cursor-zoom-in">
-                {/* Glow Effect behind the jar */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-900/20 to-transparent blur-xl group-hover:opacity-100 transition duration-1000"></div>
-                
-                <img 
-                    src={backImg} 
-                    alt="Nutrition Label" 
-                    className="mx-auto w-64 md:w-80 rounded-lg shadow-2xl border border-stone-800 rotate-0 md:rotate-3 transition duration-700 group-hover:rotate-0 group-hover:scale-110"
-                />
-            </div>
-            
-            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center reveal">
-                <div>
-                    <p className="text-3xl font-bold text-white">287</p>
-                    <p className="text-stone-500 text-xs uppercase tracking-widest mt-2">Calories</p>
-                </div>
-                <div>
-                    <p className="text-3xl font-bold text-white">0.4g</p>
-                    <p className="text-stone-500 text-xs uppercase tracking-widest mt-2">Protein</p>
-                </div>
-                <div>
-                    <p className="text-3xl font-bold text-white">0g</p>
-                    <p className="text-stone-500 text-xs uppercase tracking-widest mt-2">Trans Fat</p>
-                </div>
-                <div>
-                    <p className="text-3xl font-bold text-white">3 M</p>
-                    <p className="text-stone-500 text-xs uppercase tracking-widest mt-2">Shelf Life</p>
-                </div>
-            </div>
-        </div>
-      </div>
-
-      {/* 4. FOOTER CTA */}
-      <div className="bg-gradient-to-t from-red-950 to-black py-24 text-center">
-        <div className="reveal">
-            <h2 className="text-4xl font-serif mb-8">Ready to taste the difference?</h2>
-            <a 
-                href="https://www.amazon.in/WefPro-Natural-Strawberry-Traditional-Handmade/dp/B0G1GNXVY9" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 text-white border border-white/30 px-8 py-4 rounded-full hover:bg-white hover:text-black transition duration-300"
-            >
-                Order on Amazon <ArrowRight size={18}/>
-            </a>
-        </div>
       </div>
 
     </div>
