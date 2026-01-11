@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Package, DollarSign, Download, LogOut, CheckCircle, Clock, Truck, Eye, X, MapPin, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
+import { downloadInvoice } from '../utils/generateInvoice';
 const Admin = () => {
   const [orders, setOrders] = useState([]);
   const [price, setPrice] = useState(249); 
@@ -114,27 +114,30 @@ const Admin = () => {
                                     
                                     {/* 📄 DOCUMENTS LINKAGE COLUMN */}
                                     <td className="p-4">
-                                        {/* INVOICE LINK */}
-                                        <div className="mb-2">
-                                            <span className="text-[10px] uppercase text-slate-400 font-bold tracking-wider block">Invoice</span>
-                                            <a href={`/invoice/${order.invoiceId}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-mono text-xs font-bold">
-                                                {order.invoiceId}
-                                            </a>
-                                        </div>
-                                        {/* AWB DISPLAY */}
-                                        <div>
-                                            <span className="text-[10px] uppercase text-slate-400 font-bold tracking-wider block">Delhivery AWB</span>
-                                            {order.awb ? (
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 font-mono text-xs">{order.awb}</span>
-                                                    <CheckCircle size={12} className="text-green-500" />
-                                                </div>
-                                            ) : (
-                                                <span className="text-orange-400 text-xs italic">Processing...</span>
-                                            )}
-                                        </div>
-                                    </td>
-
+    {/* DIRECT DOWNLOAD BUTTON */}
+    <div className="mb-2">
+        <span className="text-[10px] uppercase text-slate-400 font-bold tracking-wider block">Invoice</span>
+        <button 
+            onClick={() => downloadInvoice(order)}
+            className="flex items-center gap-1 text-blue-600 hover:underline font-mono text-xs font-bold"
+        >
+            <Download size={10} /> {order.invoiceId}
+        </button>
+    </div>
+    
+    {/* AWB DISPLAY */}
+    <div>
+        <span className="text-[10px] uppercase text-slate-400 font-bold tracking-wider block">Delhivery AWB</span>
+        {order.awb ? (
+            <div className="flex items-center gap-2 mt-1">
+                <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 font-mono text-xs">{order.awb}</span>
+                <CheckCircle size={12} className="text-green-500" />
+            </div>
+        ) : (
+            <span className="text-orange-400 text-xs italic">Processing...</span>
+        )}
+    </div>
+</td>
                                     <td className="p-4 text-right">
                                         <button onClick={() => setSelectedOrder(order)} className="text-slate-400 hover:text-blue-600 transition" title="View Details">
                                             <Eye size={20} />
