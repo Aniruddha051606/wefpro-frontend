@@ -7,37 +7,36 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Logout Function
+  // 🔴 LOGOUT FUNCTION (Fixed Key Name)
   const handleLogout = () => {
-    localStorage.removeItem("authToken"); // Destroy the Key
-    navigate("/login"); // Kick to login screen
+    localStorage.removeItem("wefpro_admin_key"); // Matches Login.jsx
+    navigate("/login"); 
   };
 
+  // 📦 FETCH ORDERS (Simulated for Demo)
   const fetchOrders = async () => {
     setLoading(true);
-    try {
-      const response = await fetch('http://localhost:5000/api/orders');
-      const data = await response.json();
-      setOrders(data);
-    } catch (error) {
-      console.error("Failed to fetch orders:", error);
-    }
-    setLoading(false);
+    
+    // SIMULATING API CALL DELAY
+    setTimeout(() => {
+        const demoData = [
+            { _id: 1, orderId: "order_849201", customerName: "Ananya Sharma", amount: 249, status: "Processing" },
+            { _id: 2, orderId: "order_110293", customerName: "Rahul Verma", amount: 498, status: "Shipped" },
+            { _id: 3, orderId: "order_774829", customerName: "Priya Singh", amount: 249, status: "Delivered" },
+            { _id: 4, orderId: "order_339102", customerName: "Vikram Malhotra", amount: 747, status: "Processing" },
+        ];
+        setOrders(demoData);
+        setLoading(false);
+    }, 1000);
   };
 
-  // ⚡ NEW FUNCTION: Update Status
-  const updateStatus = async (orderId, newStatus) => {
-    try {
-        await fetch(`http://localhost:5000/api/orders/${orderId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus })
-        });
-        // Refresh the table to show changes
-        fetchOrders(); 
-    } catch (error) {
-        alert("Failed to update status");
-    }
+  // ⚡ UPDATE STATUS (Local State Update for Demo)
+  const updateStatus = (orderId, newStatus) => {
+    // In a real app, you would fetch(PUT) here. 
+    // For demo, we just update the list in memory.
+    setOrders(prev => prev.map(order => 
+        order.orderId === orderId ? { ...order, status: newStatus } : order
+    ));
   };
 
   useEffect(() => {
@@ -54,15 +53,15 @@ const Admin = () => {
           <div className="flex space-x-4">
             <button 
                 onClick={handleLogout}
-                className="bg-white px-4 py-2 rounded-lg shadow-sm font-medium text-stone-600 hover:text-red-600 border border-stone-200"
+                className="bg-white px-4 py-2 rounded-lg shadow-sm font-medium text-stone-600 hover:text-red-600 border border-stone-200 transition"
             >
                 Logout
             </button>
             <button 
                 onClick={fetchOrders} 
-                className="bg-white px-4 py-2 rounded-lg shadow-sm font-medium text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+                className="bg-white px-4 py-2 rounded-lg shadow-sm font-medium text-blue-600 hover:bg-blue-50 flex items-center gap-2 transition"
             >
-                <RefreshCcw size={18} /> Refresh
+                <RefreshCcw size={18} className={loading ? "animate-spin" : ""} /> Refresh
             </button>
           </div>
         </div>
@@ -73,7 +72,14 @@ const Admin = () => {
                 <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Package /></div>
                 <div><p className="text-sm text-stone-500">Total Orders</p><p className="text-2xl font-bold">{orders.length}</p></div>
             </div>
-            {/* Add more stats here if needed */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 flex items-center gap-4">
+                <div className="p-3 bg-green-100 text-green-600 rounded-lg"><CheckCircle /></div>
+                <div><p className="text-sm text-stone-500">Delivered</p><p className="text-2xl font-bold">{orders.filter(o => o.status === 'Delivered').length}</p></div>
+            </div>
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 flex items-center gap-4">
+                <div className="p-3 bg-yellow-100 text-yellow-600 rounded-lg"><AlertCircle /></div>
+                <div><p className="text-sm text-stone-500">Pending</p><p className="text-2xl font-bold">{orders.filter(o => o.status === 'Processing').length}</p></div>
+            </div>
         </div>
 
         {/* Orders Table */}
@@ -124,6 +130,9 @@ const Admin = () => {
               ))}
             </tbody>
           </table>
+          {orders.length === 0 && !loading && (
+             <div className="p-8 text-center text-stone-400">No orders found</div>
+          )}
         </div>
 
       </div>

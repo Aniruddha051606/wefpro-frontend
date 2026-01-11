@@ -2,12 +2,16 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 const PrivateRoute = ({ children }) => {
-  // Check if the user has the "Key" in their pocket
-  const isAuthenticated = localStorage.getItem("authToken");
+  // Check if the "admin_key" exists in the browser's memory
+  const isAuthenticated = localStorage.getItem("wefpro_admin_key");
 
-  // If they have the key, let them in (render children).
-  // If not, kick them back to Login page.
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  // If NO key, redirect to Login
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  // If YES key, show the Admin Page
+  return children;
 };
 
 export default PrivateRoute;

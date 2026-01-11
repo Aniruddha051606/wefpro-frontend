@@ -1,94 +1,62 @@
 import React, { useState } from 'react';
+import { Lock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, User } from 'lucide-react';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [passcode, setPasscode] = useState('');
+  const [error, setError] = useState(false);
   const navigate = useNavigate();
 
- const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    setError('');
     
-    try {
-        // Ask the Server: "Are these credentials correct?"
-        const response = await fetch('http://localhost:5000/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            // Server said YES. Save the key.
-            localStorage.setItem("authToken", data.token);
-            navigate("/admin");
-        } else {
-            // Server said NO.
-            setError(data.message);
-        }
-    } catch (err) {
-        setError("Cannot connect to Login Server.");
+    // 🔐 THE SECRET CODES
+    if (passcode === "admin2026" || passcode === "dev_master") {
+        // Save the "Key" to browser memory
+        // ⚠️ MUST MATCH THE KEY IN ADMIN.JSX
+        localStorage.setItem("wefpro_admin_key", "true");
+        
+        // Go to Admin Dashboard
+        navigate("/admin");
+    } else {
+        setError(true);
     }
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 flex items-center justify-center p-4 font-sans">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-stone-100">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="bg-stone-900 p-8 rounded-2xl border border-stone-800 w-full max-w-md shadow-2xl">
         
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-red-600">Wefpro<span className="text-stone-800">.</span></h1>
-          <p className="text-stone-500 mt-2">Authorized Personnel Only</p>
+            <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                <Lock size={32} />
+            </div>
+            <h1 className="text-2xl font-serif text-white">WefPro Admin</h1>
+            <p className="text-stone-500 text-sm mt-2">Restricted Access. Authorized Personnel Only.</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-2">Username</label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 text-stone-400" size={20} />
-              <input 
-                type="text" 
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
-                placeholder="Enter username"
-              />
+            <div>
+                <input 
+                    type="password" 
+                    placeholder="Enter Security Passcode" 
+                    value={passcode}
+                    onChange={(e) => { setPasscode(e.target.value); setError(false); }}
+                    className="w-full bg-black border border-stone-700 p-4 rounded-lg text-white text-center tracking-widest text-xl focus:outline-none focus:border-red-500 transition"
+                />
+                {error && <p className="text-red-500 text-xs text-center mt-2 animate-pulse">Access Denied: Invalid Passcode</p>}
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-2">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 text-stone-400" size={20} />
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          {error && (
-            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg font-medium text-center">
-              {error}
-            </div>
-          )}
-
-          <button 
-            type="submit" 
-            className="w-full bg-stone-900 text-white py-3 rounded-xl font-bold hover:bg-black transition shadow-lg"
-          >
-            Access Dashboard
-          </button>
+            <button 
+                type="submit" 
+                className="w-full bg-white text-black py-4 rounded-lg font-bold hover:bg-red-600 hover:text-white transition flex justify-center items-center gap-2"
+            >
+                Access Dashboard <ArrowRight size={18} />
+            </button>
         </form>
-        
-        <p className="text-center text-xs text-stone-400 mt-6">
-          Secured by Wefpro Internal Systems v1.0
+
+        <p className="text-center text-stone-700 text-xs mt-8">
+            System ID: 839-201-X • Secure Connection
         </p>
 
       </div>
