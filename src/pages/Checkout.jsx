@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock } from 'lucide-react';
 
-// ⚠️ FIX: Added 'clearCart' to the props here 👇
 const Checkout = ({ cartItems, clearCart }) => {
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("Processing Payment..."); 
   const [formData, setFormData] = useState({ fullName: '', phone: '', address: '', city: '', pincode: '' });
 
-  // Math
   const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
   const shipping = subtotal > 499 ? 0 : 40;
   const total = subtotal + shipping;
@@ -15,53 +14,56 @@ const Checkout = ({ cartItems, clearCart }) => {
 
   const handlePayment = async (e) => {
     e.preventDefault();
-    if(!formData.fullName || !formData.address || !formData.phone) {
-        return alert("Please fill in all details.");
-    }
+    if(!formData.fullName || !formData.address || !formData.phone) return alert("Please fill in all details.");
     
     setLoading(true);
+    setStatus("Verifying Payment...");
 
-    // 🕒 SIMULATE PAYMENT PROCESS
     setTimeout(() => {
-        const orderId = "ORD-" + Math.floor(Math.random() * 1000000);
+        setStatus("Generating Tax Invoice...");
         
-        // 1. CREATE THE FULL ORDER OBJECT
-        const newOrder = {
-            _id: Date.now(),
-            orderId: orderId,
-            customerName: formData.fullName,
-            phone: formData.phone,
-            address: formData.address,
-            city: formData.city,
-            pincode: formData.pincode,
-            items: cartItems,
-            amount: total,
-            status: "Processing",
-            date: new Date().toLocaleDateString()
-        };
+        setTimeout(() => {
+            const orderId = "ORD-" + Math.floor(Math.random() * 1000000);
+            const invoiceId = "INV-" + new Date().getFullYear() + "-" + Math.floor(Math.random() * 10000);
+            const awbNumber = "DEL-" + Math.floor(Math.random() * 900000000 + 100000000);
+            
+            setStatus("Booking Delhivery Shipment...");
+            
+            setTimeout(() => {
+                const newOrder = {
+                    _id: Date.now(),
+                    orderId: orderId,
+                    customerName: formData.fullName,
+                    phone: formData.phone,
+                    address: formData.address,
+                    city: formData.city,
+                    pincode: formData.pincode,
+                    items: cartItems,
+                    amount: total,
+                    date: new Date().toLocaleDateString(),
+                    status: "Shipped", 
+                    invoiceId: invoiceId, // Linked ID
+                    awb: awbNumber,       // Linked ID
+                    courier: "Delhivery Express",
+                };
 
-        // 2. SAVE TO MEMORY
-        const existingOrders = JSON.parse(localStorage.getItem("wefpro_orders") || "[]");
-        existingOrders.unshift(newOrder);
-        localStorage.setItem("wefpro_orders", JSON.stringify(existingOrders));
-        
-        // 3. CLEAR CART (This will work now!)
-        if (clearCart) {
-            clearCart();
-        }
-        
-        // 4. REDIRECT
-        setLoading(false);
-        window.location.href = `/track?id=${orderId}`;
-        
-    }, 2000);
+                const existingOrders = JSON.parse(localStorage.getItem("wefpro_orders") || "[]");
+                existingOrders.unshift(newOrder);
+                localStorage.setItem("wefpro_orders", JSON.stringify(existingOrders));
+                
+                if (clearCart) clearCart();
+                
+                setLoading(false);
+                window.location.href = `/track?id=${orderId}`;
+                
+            }, 1500); 
+        }, 1500); 
+    }, 2000); 
   };
 
   return (
     <div className="min-h-screen bg-stone-950 text-stone-200 p-6 md:p-12 font-sans flex items-center justify-center">
       <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-12">
-        
-        {/* Left: Form */}
         <div>
           <h2 className="text-3xl font-serif mb-8 text-white">Secure Checkout</h2>
           <form onSubmit={handlePayment} className="space-y-6">
@@ -78,17 +80,12 @@ const Checkout = ({ cartItems, clearCart }) => {
                     <input name="pincode" onChange={handleChange} placeholder="PIN Code" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" />
                 </div>
             </div>
-            
             <button type="submit" disabled={loading} className="w-full bg-white text-black py-4 rounded font-bold text-lg hover:bg-stone-200 transition mt-6 flex justify-center items-center gap-2">
-               {loading ? "Processing Payment..." : `Pay ₹${total}`} <Lock size={16} />
+               {loading ? <span className="animate-pulse">{status}</span> : <>Pay ₹{total} <Lock size={16} /></>}
             </button>
-            <p className="text-center text-xs text-stone-600 flex justify-center items-center gap-1">
-                <ShieldCheck size={12}/> 256-bit SSL Secured Payment
-            </p>
+            <p className="text-center text-xs text-stone-600 flex justify-center items-center gap-1"><ShieldCheck size={12}/> 256-bit SSL Secured Payment</p>
           </form>
         </div>
-
-        {/* Right: Summary */}
         <div className="bg-stone-900 p-8 rounded-2xl h-fit border border-stone-800">
             <h3 className="text-lg font-serif mb-6 text-stone-400">Order Details</h3>
             {cartItems.map(item => (
@@ -98,11 +95,9 @@ const Checkout = ({ cartItems, clearCart }) => {
                 </div>
             ))}
             <div className="border-t border-stone-800 mt-4 pt-4 flex justify-between font-bold text-xl">
-                <span>Total</span>
-                <span>₹{total}</span>
+                <span>Total</span><span>₹{total}</span>
             </div>
         </div>
-
       </div>
     </div>
   );
