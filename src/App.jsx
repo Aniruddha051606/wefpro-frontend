@@ -36,24 +36,43 @@ function App() {
   const removeFromCart = (id) => {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
+// ... inside App function ...
 
-  // Calculate total items for Badge
-  const totalItems = cartItems.reduce((acc, item) => acc + item.qty, 0);
+  // ⚡ NEW: Handle + and - inside the cart
+  const updateQty = (id, amount) => {
+    setCartItems((prev) => 
+      prev.map((item) => {
+        if (item.id === id) {
+          const newQty = item.qty + amount;
+          return newQty > 0 ? { ...item, qty: newQty } : item;
+        }
+        return item;
+      })
+    );
+  };
 
+  // ... keep existing return ...
+  
+  // ⚡ UPDATE THE ROUTE TO PASS THIS NEW FUNCTION
   return (
     <Router>
-      <div className="bg-black min-h-screen text-stone-100 font-sans selection:bg-red-900 selection:text-white">
-        <Navbar cartCount={totalItems} /> 
-        
-        <Routes>
-          <Route path="/" element={<Home addToCart={addToCart} />} />
-          <Route path="/cart" element={<Cart cartItems={cartItems} removeFromCart={removeFromCart} />} />
-          <Route path="/checkout" element={<Checkout cartItems={cartItems} />} />
-          <Route path="/track" element={<Tracking />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
-        </Routes>
-      </div>
+       {/* ... navbar ... */}
+       <Routes>
+          {/* ... other routes ... */}
+          
+          <Route 
+            path="/cart" 
+            element={
+              <Cart 
+                cartItems={cartItems} 
+                removeFromCart={removeFromCart} 
+                updateQty={updateQty} // <--- PASS THIS PROP
+              />
+            } 
+          />
+          
+          {/* ... other routes ... */}
+       </Routes>
     </Router>
   );
 }
