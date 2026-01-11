@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingBag, Star, ArrowRight, Droplets, Leaf } from 'lucide-react';
+import { ShoppingBag, Droplets, Leaf, ArrowRight } from 'lucide-react';
 
-// YOUR ASSETS
+// KEEP YOUR STATIC ASSETS FOR FALLBACK
 import heroImg from '../assets/jar-front.jpg'; 
 import lifestyleImg from '../assets/jar-lifestyle.jpg';
 
 const Home = ({ addToCart }) => {
   const [scrollY, setScrollY] = useState(0);
-  const containerRef = useRef(null);
 
   // 🍓 PRODUCT DATA
   const product = { 
@@ -25,144 +24,125 @@ const Home = ({ addToCart }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 🧮 CALCULATE ANIMATIONS BASED ON SCROLL
-  // These values change from 0 to 1 as you scroll down
-  const progress = Math.min(scrollY / 1000, 2); // Cap at 2
-  
-  // 1. Jar Animation (Zooms in then slides left)
-  const jarScale = 1 + (progress * 0.2); // Grows slightly
-  const jarOpacity = Math.max(1 - (scrollY / 1500), 0); // Fades out eventually
-  
-  // 2. Floating Elements (Parallax)
-  const floatUp = scrollY * -0.2; 
-  const floatDown = scrollY * 0.1;
+  // 🧮 ANIMATION MATH
+  const progress = Math.min(scrollY / 1000, 2); 
+  const opacity = Math.max(1 - (scrollY / 800), 0); // Video fades out as you scroll
+  const scale = 1 + (scrollY * 0.0005); // Subtle zoom effect
 
   return (
-    <div ref={containerRef} className="bg-black text-white font-sans overflow-x-hidden selection:bg-red-500">
+    <div className="bg-black text-white font-sans overflow-x-hidden selection:bg-red-500">
       
-      {/* 🟢 STICKY STAGE (The Jar stays fixed while you scroll) */}
-      <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
-         {/* THE GLOW BEHIND JAR */}
-         <div className="absolute w-[600px] h-[600px] bg-red-900/20 blur-[100px] rounded-full transition-all duration-700"
-              style={{ opacity: 1 - progress }} 
-         ></div>
-
-         {/* 🍓 THE HERO JAR (Animated) */}
-         <img 
-            src={heroImg} 
-            alt="WefPro Jar" 
-            className="w-[60vw] md:w-[25vw] object-contain drop-shadow-2xl transition-transform duration-100 ease-out"
+      {/* 🟢 1. STICKY VIDEO BACKGROUND (The "Cinematic" Layer) */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+         
+         {/* OVERLAY: Darken video so text pops */}
+         <div className="absolute inset-0 bg-black/40 z-10" style={{ opacity: opacity }}></div>
+         
+         {/* 🎥 THE VIDEO */}
+         {/* I used a free 4K Strawberry stock video link here. 
+             Replace 'src' with your local file later if you want: src={myVideoFile} */}
+         <video 
+            autoPlay 
+            loop 
+            muted 
+            playsInline
+            className="w-full h-full object-cover transition-transform duration-100 ease-out"
             style={{ 
-                transform: `scale(${jarScale}) translateY(${scrollY * 0.05}px)`,
-                opacity: scrollY > 1200 ? 0 : 1 // Disappears at the very end
+                opacity: opacity,
+                transform: `scale(${scale})`
             }}
-         />
-      </div>
+         >
+            <source src="https://cdn.pixabay.com/video/2024/02/05/199464-910408544_large.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+         </video>
 
-      {/* ================= SCROLL SECTIONS ================= */}
-      
-      {/* SECTION 1: INTRO (Content sits ON TOP of sticky jar) */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center text-center pt-20 pointer-events-none">
-          <div className="animate-fade-in-up mix-blend-difference text-white">
-            <h1 className="text-6xl md:text-9xl font-serif font-black tracking-tighter mb-4"
-                style={{ transform: `translateY(${floatUp}px)`, opacity: 1 - progress }}
-            >
-              WEFPRO
+         {/* CENTRED TEXT (Floats on top of video) */}
+         <div className="absolute inset-0 flex flex-col items-center justify-center z-20 text-center"
+              style={{ opacity: opacity, transform: `translateY(${scrollY * -0.5}px)` }}
+         >
+            <p className="text-red-500 tracking-[0.5em] text-sm uppercase mb-4 animate-fade-in-up">Handcrafted in Mahabaleshwar</p>
+            <h1 className="text-6xl md:text-9xl font-serif font-black text-white mix-blend-overlay opacity-90">
+                WEFPRO
             </h1>
-            <p className="text-xl md:text-2xl font-light tracking-[0.5em] uppercase text-red-500"
-               style={{ transform: `translateY(${floatUp * 1.2}px)`, opacity: 1 - progress }}
-            >
-              The Real Taste
-            </p>
-          </div>
-          
-          {/* "Scroll Down" Indicator */}
-          <div className="absolute bottom-10 animate-bounce text-stone-500 text-xs uppercase tracking-widest">
-            Scroll to Explore
-          </div>
+         </div>
       </div>
 
-      {/* SECTION 2: DECONSTRUCTION (Ingredients "Float" in) */}
-      <div className="relative z-10 min-h-screen flex items-center justify-between px-6 md:px-20 pointer-events-none">
+      {/* ================= SCROLLABLE CONTENT ================= */}
+      
+      {/* SPACER (To let the video shine for the first 100vh) */}
+      <div className="h-screen w-full"></div>
+
+      {/* SECTION 2: THE PRODUCT REVEAL (White Card floating up) */}
+      <div className="relative z-10 bg-stone-950 min-h-screen rounded-t-[3rem] border-t border-stone-800 -mt-20 shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
           
-          {/* Left Floating Text */}
-          <div className="w-1/2 md:w-1/3 space-y-32 transition-all duration-500"
-               style={{ 
-                 opacity: progress > 0.3 ? 1 : 0, 
-                 transform: `translateX(${progress > 0.3 ? 0 : -50}px)`
-               }}
-          >
-              <div className="text-right">
-                  <div className="text-red-500 mb-2"><Droplets size={40} className="ml-auto"/></div>
-                  <h3 className="text-4xl font-serif font-bold">74% Fruit</h3>
-                  <p className="text-stone-400 text-sm">Real Strawberries, not pulp.</p>
-              </div>
-          </div>
-
-          {/* Right Floating Text */}
-          <div className="w-1/2 md:w-1/3 space-y-32 transition-all duration-500"
-               style={{ 
-                 opacity: progress > 0.3 ? 1 : 0, 
-                 transform: `translateX(${progress > 0.3 ? 0 : 50}px)`
-               }}
-          >
-              <div className="text-left">
-                  <div className="text-green-500 mb-2"><Leaf size={40}/></div>
-                  <h3 className="text-4xl font-serif font-bold">100% Natural</h3>
-                  <p className="text-stone-400 text-sm">Farm fresh, zero chemicals.</p>
-              </div>
-          </div>
-      </div>
-
-      {/* SECTION 3: LIFESTYLE & BUY (Solid Background covers the sticky jar) */}
-      <div className="relative z-20 bg-stone-950 min-h-screen border-t border-stone-800 flex items-center">
-          <div className="max-w-6xl mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          <div className="max-w-6xl mx-auto px-6 py-24 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
               
-              {/* Image Reveal */}
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-stone-800 group">
+              {/* Product Image (Slides in) */}
+              <div className="relative group">
+                  <div className="absolute inset-0 bg-red-600/20 blur-[80px] rounded-full group-hover:bg-red-600/30 transition duration-700"></div>
                   <img 
-                    src={lifestyleImg} 
-                    alt="Breakfast" 
-                    className="w-full h-auto object-cover transform group-hover:scale-110 transition duration-[2000ms]" 
+                    src={heroImg} 
+                    alt="Jar" 
+                    className="relative w-full md:w-3/4 mx-auto object-contain drop-shadow-2xl transform group-hover:-translate-y-4 transition duration-500" 
                   />
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition duration-500"></div>
               </div>
 
-              {/* The "Buy" Panel */}
+              {/* Details */}
               <div className="space-y-8">
-                  <h2 className="text-5xl md:text-7xl font-serif font-bold leading-none">
-                    Morning <br/><span className="text-red-600">Essence.</span>
+                  <h2 className="text-4xl md:text-6xl font-serif">
+                    The Taste of <br/><span className="text-red-600">Pure Fruit.</span>
                   </h2>
-                  <p className="text-stone-400 text-lg leading-relaxed border-l-2 border-red-900 pl-6">
-                    Handmade in small batches in Mahabaleshwar. 
-                    The perfect texture for your toast, pancakes, or spoon.
-                  </p>
                   
-                  <div className="flex items-center gap-6 pt-8">
-                      <div>
-                        <p className="text-stone-500 text-xs uppercase tracking-widest">Price</p>
-                        <p className="text-4xl font-bold text-white">₹{product.price}</p>
+                  <div className="grid grid-cols-2 gap-6">
+                      <div className="bg-stone-900/50 p-6 rounded-2xl border border-stone-800">
+                          <Droplets className="text-red-500 mb-3" size={32}/>
+                          <h3 className="font-bold text-xl">74% Fruit</h3>
+                          <p className="text-stone-500 text-sm">Real Strawberries</p>
                       </div>
-                      
+                      <div className="bg-stone-900/50 p-6 rounded-2xl border border-stone-800">
+                          <Leaf className="text-green-500 mb-3" size={32}/>
+                          <h3 className="font-bold text-xl">100% Natural</h3>
+                          <p className="text-stone-500 text-sm">No Preservatives</p>
+                      </div>
+                  </div>
+
+                  <div className="flex items-center gap-6 pt-4">
+                      <span className="text-4xl font-light">₹{product.price}</span>
                       <button 
                         onClick={() => addToCart(product)}
-                        className="bg-white text-black px-10 py-5 rounded-full font-bold hover:bg-red-600 hover:text-white transition duration-300 flex items-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+                        className="flex-1 bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-red-600 hover:text-white transition duration-300 flex justify-center items-center gap-2"
                       >
                         Add to Cart <ShoppingBag size={20} />
                       </button>
                   </div>
+              </div>
+          </div>
 
-                  <a 
+          {/* SECTION 3: LIFESTYLE IMAGE (Parallax) */}
+          <div className="h-[60vh] relative overflow-hidden">
+             <img 
+                src={lifestyleImg} 
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ transform: `translateY(${(scrollY - 1500) * 0.1}px)` }} // slow parallax
+                alt="Lifestyle"
+             />
+             <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                <a 
                     href="https://www.amazon.in/WefPro-Natural-Strawberry-Traditional-Handmade/dp/B0G1GNXVY9" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="block text-stone-500 hover:text-white text-sm mt-4 flex items-center gap-2 transition"
-                  >
-                    View on Amazon.in <ArrowRight size={14}/>
-                  </a>
-              </div>
-
+                    className="bg-white/10 backdrop-blur-md border border-white/30 text-white px-8 py-3 rounded-full hover:bg-white hover:text-black transition flex items-center gap-2"
+                >
+                    View on Amazon <ArrowRight size={18}/>
+                </a>
+             </div>
           </div>
+
+          {/* FOOTER */}
+          <div className="bg-black py-12 text-center text-stone-600 text-sm">
+              <p>© 2026 WefPro Foods. Mahabaleshwar, India.</p>
+          </div>
+
       </div>
 
     </div>
