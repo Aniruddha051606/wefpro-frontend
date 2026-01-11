@@ -1,91 +1,100 @@
 import React from 'react';
-import { ShoppingBag, Star, ArrowDown } from 'lucide-react';
+import { ShoppingBag, Star, ArrowRight, CheckCircle, Leaf, Droplets } from 'lucide-react';
 
 const Home = ({ addToCart }) => {
   
-  const products = [
-    { id: 1, name: "Velvet Strawberry", price: 249, image: "https://images.unsplash.com/photo-1621251347628-8798cb3cb602?q=80&w=400", desc: "Harvested at dawn. Crushed by hand." },
-    { id: 2, name: "Midnight Honey", price: 399, image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?q=80&w=400", desc: "Wild foraged from the deep forest." },
-    { id: 3, name: "Scarlet Blend", price: 199, image: "https://images.unsplash.com/photo-1600423115367-87ea79269cd3?q=80&w=400", desc: "A symphony of five rare berries." }
-  ];
+  // 🍓 THE SINGLE HERO PRODUCT
+  const product = { 
+    id: 1, 
+    name: "WefPro Natural Strawberry Jam", 
+    price: 249, // Update this if Amazon price changes
+    image: "https://images.unsplash.com/photo-1600423115367-87ea79269cd3?q=80&w=800", // High-Res Jam Image
+    desc: "Traditional Handmade, 100% Natural, No Preservatives." 
+  };
 
   return (
-    <div className="bg-black text-white font-sans">
+    <div className="bg-black text-white font-sans overflow-x-hidden">
       
-      {/* 1. CINEMATIC HERO SECTION (Full Screen) */}
-      <div className="relative h-screen w-full overflow-hidden">
-        {/* Background Image/Video */}
-        <div className="absolute inset-0">
-            <img 
-                src="https://images.unsplash.com/photo-1599940824399-b87987ce179a?q=80&w=2000" 
-                className="w-full h-full object-cover opacity-60" 
-                alt="Luxury Jam Background"
-            />
-            {/* Gradient Overlay for text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40"></div>
+      {/* 1. HERO SECTION (Split Screen) */}
+      <div className="min-h-screen flex flex-col md:flex-row">
+        
+        {/* Left: Text Content */}
+        <div className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-20 py-12 z-10 bg-black/80 backdrop-blur-sm md:bg-transparent">
+          <div className="animate-fade-in-up">
+            <span className="text-red-500 tracking-[0.4em] uppercase text-xs font-bold mb-4 block">Limited Batch</span>
+            <h1 className="text-5xl md:text-7xl font-serif font-bold mb-6 leading-tight">
+              Pure. <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-900">Handmade.</span>
+            </h1>
+            <p className="text-stone-400 text-lg mb-8 leading-relaxed max-w-md">
+              Experience the authentic taste of Mahabaleshwar strawberries. 
+              Zero preservatives. 100% fruit content. Made the traditional way.
+            </p>
+            
+            <div className="flex items-center gap-6">
+              <span className="text-3xl font-light text-white">₹{product.price}</span>
+              <button 
+                onClick={() => addToCart(product)}
+                className="bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-red-600 hover:text-white transition duration-300 flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-red-900/50"
+              >
+                Add to Cart <ShoppingBag size={20} />
+              </button>
+            </div>
+
+            <div className="mt-12 flex gap-2 text-yellow-500">
+               {[1,2,3,4,5].map(i => <Star key={i} size={16} fill="currentColor" />)}
+               <span className="text-stone-500 text-sm ml-2">(4.8/5 Rated on Amazon)</span>
+            </div>
+          </div>
         </div>
 
-        {/* Floating Content */}
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
-            <p className="text-red-500 tracking-[0.3em] text-sm uppercase mb-4 animate-fade-in-up">The Collection</p>
-            <h1 className="text-6xl md:text-8xl font-serif font-bold mb-6 tracking-tight">
-                Pure. <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600">Organic.</span>
-            </h1>
-            <p className="text-stone-300 max-w-lg text-lg mb-10 font-light leading-relaxed">
-                Experience the taste of nature's finest ingredients, preserved in time for your absolute pleasure.
-            </p>
-            <button 
-                onClick={() => document.getElementById('shop').scrollIntoView({ behavior: 'smooth' })}
-                className="px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white hover:bg-white hover:text-black transition duration-500 flex items-center gap-2"
-            >
-                Explore Collection <ArrowDown size={18}/>
-            </button>
+        {/* Right: The Product Image (Full Height) */}
+        <div className="w-full md:w-1/2 h-[50vh] md:h-screen relative">
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10 md:hidden"></div>
+            <img 
+                src={product.image} 
+                alt="WefPro Jam Jar" 
+                className="w-full h-full object-cover object-center"
+            />
         </div>
       </div>
 
-      {/* 2. THE SHOWCASE (Minimalist Grid) */}
-      <div id="shop" className="max-w-7xl mx-auto px-6 py-24">
-        <div className="flex justify-between items-end mb-16">
-            <h2 className="text-4xl font-serif">Curated Selections</h2>
-            <p className="text-stone-500 hidden md:block">Fall / Winter 2026</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-16">
-          {products.map((product) => (
-            <div key={product.id} className="group cursor-pointer">
-              {/* Image Container with Zoom Effect */}
-              <div className="h-[400px] overflow-hidden rounded-sm mb-6 relative">
-                  <img 
-                    src={product.image} 
-                    alt={product.name} 
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition duration-700 ease-out" 
-                  />
-                  {/* Quick Add Button appearing on hover */}
-                  <button 
-                    onClick={() => addToCart(product)}
-                    className="absolute bottom-4 right-4 bg-white text-black p-3 rounded-full opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition duration-500 shadow-xl"
-                  >
-                    <ShoppingBag size={20} />
-                  </button>
-              </div>
+      {/* 2. "WHY WEFPRO?" SECTION (Details) */}
+      <div className="max-w-6xl mx-auto px-6 py-24 border-t border-stone-900">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
               
-              <div className="space-y-2">
-                <div className="flex justify-between items-baseline">
-                    <h3 className="text-xl font-medium text-stone-100">{product.name}</h3>
-                    <span className="text-lg text-stone-400 font-light">₹{product.price}</span>
-                </div>
-                <p className="text-sm text-stone-500 font-light">{product.desc}</p>
-                <div className="flex text-yellow-600 gap-1 text-xs">
-                    <Star size={12} fill="currentColor"/>
-                    <Star size={12} fill="currentColor"/>
-                    <Star size={12} fill="currentColor"/>
-                    <Star size={12} fill="currentColor"/>
-                    <Star size={12} fill="currentColor"/>
-                </div>
+              <div className="p-8 rounded-2xl bg-stone-900/30 border border-stone-800 hover:border-red-900 transition duration-500">
+                  <Leaf className="mx-auto text-green-500 mb-4" size={40} />
+                  <h3 className="text-xl font-serif mb-2">100% Natural</h3>
+                  <p className="text-stone-500 text-sm">No artificial colors or preservatives. Just pure fruit and sugar.</p>
               </div>
-            </div>
-          ))}
-        </div>
+
+              <div className="p-8 rounded-2xl bg-stone-900/30 border border-stone-800 hover:border-red-900 transition duration-500">
+                  <Droplets className="mx-auto text-red-500 mb-4" size={40} />
+                  <h3 className="text-xl font-serif mb-2">High Fruit Content</h3>
+                  <p className="text-stone-500 text-sm">Made with premium Mahabaleshwar strawberries picked at peak ripeness.</p>
+              </div>
+
+              <div className="p-8 rounded-2xl bg-stone-900/30 border border-stone-800 hover:border-red-900 transition duration-500">
+                  <CheckCircle className="mx-auto text-blue-500 mb-4" size={40} />
+                  <h3 className="text-xl font-serif mb-2">Traditional Recipe</h3>
+                  <p className="text-stone-500 text-sm">Slow-cooked in small batches to retain the authentic texture and aroma.</p>
+              </div>
+
+          </div>
+      </div>
+
+      {/* 3. AMAZON TRUST BADGE */}
+      <div className="bg-stone-900 py-12 text-center">
+        <p className="text-stone-400 mb-4 text-sm tracking-widest uppercase">Also available on</p>
+        <a 
+            href="https://www.amazon.in/WefPro-Natural-Strawberry-Traditional-Handmade/dp/B0G1GNXVY9" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-white border border-stone-600 px-6 py-3 rounded hover:bg-white hover:text-black transition"
+        >
+            View on Amazon.in <ArrowRight size={16}/>
+        </a>
       </div>
 
     </div>
