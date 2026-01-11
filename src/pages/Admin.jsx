@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  LayoutDashboard, 
-  Package, 
-  DollarSign, 
-  TrendingUp, 
-  Download, 
-  LogOut, 
-  Save, 
-  CheckCircle,
-  Clock,
-  Truck
+  LayoutDashboard, Package, DollarSign, Download, LogOut, Save, CheckCircle, Clock, Eye, X, MapPin, Phone
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,15 +8,14 @@ const Admin = () => {
   const [orders, setOrders] = useState([]);
   const [price, setPrice] = useState(249); 
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null); // <--- FOR POPUP
   const navigate = useNavigate();
 
-  // AUTH CHECK & LOGOUT
   const handleLogout = () => {
     localStorage.removeItem("wefpro_admin_key");
     navigate("/login"); 
   };
 
-  // FETCH DATA
   const fetchData = () => {
     const storedOrders = localStorage.getItem("wefpro_orders");
     if (storedOrders) setOrders(JSON.parse(storedOrders));
@@ -34,18 +24,14 @@ const Admin = () => {
     if (storedPrice) setPrice(parseInt(storedPrice));
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  // SAVE PRICE
   const handleUpdatePrice = () => {
     setIsSaving(true);
     localStorage.setItem("wefpro_product_price", price);
     setTimeout(() => setIsSaving(false), 800);
   };
 
-  // UPDATE ORDER STATUS
   const updateStatus = (orderId, newStatus) => {
     const updatedList = orders.map(order => 
         order.orderId === orderId ? { ...order, status: newStatus } : order
@@ -54,184 +40,184 @@ const Admin = () => {
     localStorage.setItem("wefpro_orders", JSON.stringify(updatedList));
   };
 
-  // DOWNLOAD CSV REPORT
   const downloadReport = () => {
-    const headers = ["Order ID, Date, Customer, Status, Amount\n"];
-    const rows = orders.map(o => `${o.orderId}, ${o.date || 'N/A'}, ${o.customerName}, ${o.status}, ${o.amount}`);
+    const headers = ["Order ID, Date, Customer, Phone, City, Status, Amount\n"];
+    const rows = orders.map(o => `${o.orderId}, ${o.date}, ${o.customerName}, ${o.phone}, ${o.city}, ${o.status}, ${o.amount}`);
     const csvContent = "data:text/csv;charset=utf-8," + headers + rows.join("\n");
-    const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `wefpro_sales_${Date.now()}.csv`);
-    document.body.appendChild(link);
+    link.href = encodeURI(csvContent);
+    link.download = `wefpro_sales_${Date.now()}.csv`;
     link.click();
-    document.body.removeChild(link);
   };
 
-  // CALCULATE STATS
   const totalRevenue = orders.reduce((acc, curr) => acc + parseInt(curr.amount || 0), 0);
-  const pendingOrders = orders.filter(o => o.status === 'Processing').length;
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex relative">
       
-      {/* 1. SIDEBAR (Professional Look) */}
-      <aside className="w-64 bg-slate-900 text-white hidden md:flex flex-col">
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-slate-900 text-white hidden md:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-slate-800">
             <h1 className="text-2xl font-serif font-bold tracking-tighter">WEFPRO <span className="text-red-500">.</span></h1>
-            <p className="text-slate-500 text-xs mt-1">Backoffice v1.0</p>
+            <p className="text-slate-500 text-xs mt-1">Backoffice v1.2</p>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-            <div className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-lg font-medium cursor-pointer">
-                <LayoutDashboard size={20} /> Dashboard
-            </div>
-            {/* These are visual placeholders for future features */}
-            <div className="flex items-center gap-3 text-slate-400 p-3 rounded-lg hover:bg-slate-800 cursor-pointer transition">
-                <Package size={20} /> Inventory
-            </div>
-            <div className="flex items-center gap-3 text-slate-400 p-3 rounded-lg hover:bg-slate-800 cursor-pointer transition">
-                <TrendingUp size={20} /> Analytics
-            </div>
+            <div className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-lg font-medium"><LayoutDashboard size={20} /> Dashboard</div>
+            <div className="flex items-center gap-3 text-slate-400 p-3 rounded-lg hover:bg-slate-800 cursor-pointer"><Package size={20} /> Inventory</div>
         </nav>
         <div className="p-4 border-t border-slate-800">
-            <button onClick={handleLogout} className="flex items-center gap-2 text-slate-400 hover:text-white transition w-full">
-                <LogOut size={18} /> Sign Out
-            </button>
+            <button onClick={handleLogout} className="flex items-center gap-2 text-slate-400 hover:text-white w-full"><LogOut size={18} /> Sign Out</button>
         </div>
       </aside>
 
-      {/* 2. MAIN CONTENT AREA */}
+      {/* MAIN CONTENT */}
       <main className="flex-1 p-8 overflow-y-auto">
         
-        {/* Top Header */}
+        {/* HEADER */}
         <div className="flex justify-between items-center mb-8">
-            <div>
-                <h2 className="text-2xl font-bold">Dashboard Overview</h2>
-                <p className="text-slate-500">Welcome back, Owner.</p>
-            </div>
-            <button 
-                onClick={downloadReport}
-                className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg shadow-sm hover:bg-slate-50 flex items-center gap-2 font-medium transition"
-            >
-                <Download size={18} /> Export Data
+            <h2 className="text-2xl font-bold">Dashboard Overview</h2>
+            <button onClick={downloadReport} className="bg-white border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 flex items-center gap-2 text-sm font-medium">
+                <Download size={16} /> Export Data
             </button>
         </div>
 
-        {/* STATS GRID */}
+        {/* STATS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <p className="text-slate-500 text-sm font-medium">Total Revenue</p>
-                        <h3 className="text-3xl font-bold mt-2">₹{totalRevenue.toLocaleString()}</h3>
-                    </div>
-                    <div className="p-3 bg-green-50 text-green-600 rounded-lg"><DollarSign size={24}/></div>
-                </div>
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex justify-between">
+                <div><p className="text-slate-500 text-sm">Revenue</p><h3 className="text-3xl font-bold mt-1">₹{totalRevenue}</h3></div>
+                <div className="p-3 bg-green-50 text-green-600 rounded-lg h-fit"><DollarSign size={24}/></div>
             </div>
-            
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <p className="text-slate-500 text-sm font-medium">Total Orders</p>
-                        <h3 className="text-3xl font-bold mt-2">{orders.length}</h3>
-                    </div>
-                    <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><Package size={24}/></div>
-                </div>
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex justify-between">
+                <div><p className="text-slate-500 text-sm">Orders</p><h3 className="text-3xl font-bold mt-1">{orders.length}</h3></div>
+                <div className="p-3 bg-blue-50 text-blue-600 rounded-lg h-fit"><Package size={24}/></div>
             </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <p className="text-slate-500 text-sm font-medium">Pending Shipment</p>
-                        <h3 className="text-3xl font-bold mt-2">{pendingOrders}</h3>
-                    </div>
-                    <div className="p-3 bg-orange-50 text-orange-600 rounded-lg"><Clock size={24}/></div>
-                </div>
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex justify-between">
+                <div><p className="text-slate-500 text-sm">Pending</p><h3 className="text-3xl font-bold mt-1">{orders.filter(o => o.status === 'Processing').length}</h3></div>
+                <div className="p-3 bg-orange-50 text-orange-600 rounded-lg h-fit"><Clock size={24}/></div>
             </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {/* LEFT COLUMN: ORDER TABLE */}
+            {/* ORDER TABLE */}
             <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="p-6 border-b border-slate-100">
-                    <h3 className="font-bold text-lg">Recent Orders</h3>
-                </div>
+                <div className="p-6 border-b border-slate-100"><h3 className="font-bold">Recent Orders</h3></div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-50 text-slate-500 uppercase">
                             <tr>
-                                <th className="p-4 font-medium">Order ID</th>
-                                <th className="p-4 font-medium">Customer</th>
-                                <th className="p-4 font-medium">Status</th>
-                                <th className="p-4 font-medium text-right">Amount</th>
+                                <th className="p-4">ID</th>
+                                <th className="p-4">Customer</th>
+                                <th className="p-4">Status</th>
+                                <th className="p-4 text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {orders.length > 0 ? orders.map((order) => (
-                                <tr key={order._id} className="hover:bg-slate-50 transition">
+                            {orders.map((order) => (
+                                <tr key={order._id} className="hover:bg-slate-50">
                                     <td className="p-4 font-mono text-slate-600">{order.orderId}</td>
                                     <td className="p-4 font-medium">{order.customerName}</td>
                                     <td className="p-4">
                                         <select 
                                             value={order.status}
                                             onChange={(e) => updateStatus(order.orderId, e.target.value)}
-                                            className={`px-2 py-1 rounded-full text-xs font-bold border outline-none cursor-pointer appearance-none
-                                                ${order.status === 'Processing' ? 'bg-orange-50 text-orange-700 border-orange-200' : ''}
-                                                ${order.status === 'Shipped' ? 'bg-blue-50 text-blue-700 border-blue-200' : ''}
-                                                ${order.status === 'Delivered' ? 'bg-green-50 text-green-700 border-green-200' : ''}
-                                            `}
+                                            className="bg-transparent font-bold outline-none cursor-pointer text-xs"
                                         >
                                             <option value="Processing">Processing</option>
                                             <option value="Shipped">Shipped</option>
                                             <option value="Delivered">Delivered</option>
                                         </select>
                                     </td>
-                                    <td className="p-4 text-right font-medium">₹{order.amount}</td>
+                                    <td className="p-4 text-right">
+                                        <button 
+                                            onClick={() => setSelectedOrder(order)}
+                                            className="text-slate-400 hover:text-blue-600 transition"
+                                            title="View Details"
+                                        >
+                                            <Eye size={20} />
+                                        </button>
+                                    </td>
                                 </tr>
-                            )) : (
-                                <tr><td colSpan="4" className="p-8 text-center text-slate-400">No orders yet.</td></tr>
-                            )}
+                            ))}
                         </tbody>
                     </table>
+                    {orders.length === 0 && <div className="p-8 text-center text-slate-400">No orders yet.</div>}
                 </div>
             </div>
 
-            {/* RIGHT COLUMN: PRICE CONTROL */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 h-fit">
-                <div className="p-6 border-b border-slate-100">
-                    <h3 className="font-bold text-lg">Product Management</h3>
+            {/* PRICE CONTROL */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 h-fit p-6">
+                <h3 className="font-bold mb-4">Set Price</h3>
+                <div className="relative mb-4">
+                    <span className="absolute left-3 top-2.5 text-slate-400">₹</span>
+                    <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full pl-8 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none" />
                 </div>
-                <div className="p-6">
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Current Price (INR)</label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-2.5 text-slate-400">₹</span>
-                            <input 
-                                type="number" 
-                                value={price}
-                                onChange={(e) => setPrice(e.target.value)}
-                                className="w-full pl-8 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition"
-                            />
+                <button onClick={handleUpdatePrice} className={`w-full py-2 rounded-lg font-bold text-white flex justify-center gap-2 ${isSaving ? 'bg-green-600' : 'bg-slate-900'}`}>
+                    {isSaving ? "Saved!" : "Update Price"}
+                </button>
+            </div>
+        </div>
+
+      </main>
+
+      {/* 🟢 ORDER DETAILS POPUP (MODAL) */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-fade-in-up">
+                
+                {/* Modal Header */}
+                <div className="bg-slate-900 text-white p-6 flex justify-between items-center">
+                    <div>
+                        <h3 className="text-xl font-bold">Order Details</h3>
+                        <p className="text-slate-400 text-sm font-mono">{selectedOrder.orderId}</p>
+                    </div>
+                    <button onClick={() => setSelectedOrder(null)} className="hover:bg-white/10 p-2 rounded-full transition"><X size={20}/></button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 space-y-6">
+                    
+                    {/* Customer Info */}
+                    <div className="flex items-start gap-4">
+                        <div className="bg-slate-100 p-3 rounded-full"><Package size={24} className="text-slate-600"/></div>
+                        <div>
+                            <p className="text-slate-500 text-xs uppercase tracking-widest">Customer</p>
+                            <p className="font-bold text-lg">{selectedOrder.customerName}</p>
+                            <p className="text-slate-600 flex items-center gap-2 mt-1"><Phone size={14}/> {selectedOrder.phone || "No Phone"}</p>
                         </div>
                     </div>
-                    <button 
-                        onClick={handleUpdatePrice}
-                        className={`w-full py-2.5 rounded-lg font-bold text-white flex justify-center items-center gap-2 transition
-                            ${isSaving ? 'bg-green-600' : 'bg-slate-900 hover:bg-black'}
-                        `}
-                    >
-                        {isSaving ? <CheckCircle size={18}/> : <Save size={18}/>}
-                        {isSaving ? "Price Updated" : "Save Changes"}
-                    </button>
-                    <p className="text-xs text-slate-400 mt-4 text-center">
-                        Changes reflect immediately on the storefront.
-                    </p>
-                </div>
-            </div>
 
+                    {/* Address Info */}
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <p className="text-slate-500 text-xs uppercase tracking-widest mb-2 flex items-center gap-2"><MapPin size={14}/> Shipping Address</p>
+                        <p className="text-slate-800 font-medium">
+                            {selectedOrder.address}<br/>
+                            {selectedOrder.city} - {selectedOrder.pincode}
+                        </p>
+                    </div>
+
+                    {/* Order Items Summary */}
+                    <div className="border-t border-slate-100 pt-4">
+                        <div className="flex justify-between font-bold text-lg">
+                            <span>Total Amount</span>
+                            <span>₹{selectedOrder.amount}</span>
+                        </div>
+                        <p className="text-slate-400 text-sm">Status: <span className="text-slate-800 font-medium">{selectedOrder.status}</span></p>
+                    </div>
+
+                    {/* Action Button */}
+                    <button 
+                        onClick={() => setSelectedOrder(null)}
+                        className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-black transition"
+                    >
+                        Close Details
+                    </button>
+                </div>
+
+            </div>
         </div>
-      </main>
+      )}
+
     </div>
   );
 };

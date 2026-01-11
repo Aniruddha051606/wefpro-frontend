@@ -24,33 +24,36 @@ const Checkout = ({ cartItems }) => {
     setTimeout(() => {
         const orderId = "ORD-" + Math.floor(Math.random() * 1000000);
         
-        // 1. CREATE THE REAL ORDER OBJECT
+        // 1. CREATE THE FULL ORDER OBJECT (Now with Address!)
         const newOrder = {
-            _id: Date.now(), // Unique ID based on time
+            _id: Date.now(),
             orderId: orderId,
             customerName: formData.fullName,
+            phone: formData.phone,           // <--- ADDED
+            address: formData.address,       // <--- ADDED
+            city: formData.city,             // <--- ADDED
+            pincode: formData.pincode,       // <--- ADDED
+            items: cartItems,                // <--- ADDED (Save what they bought)
             amount: total,
-            status: "Processing", // Default status
+            status: "Processing",
             date: new Date().toLocaleDateString()
         };
 
-        // 2. SAVE TO "DATABASE" (Local Storage)
-        // Get existing orders or start empty
+        // 2. SAVE TO MEMORY
         const existingOrders = JSON.parse(localStorage.getItem("wefpro_orders") || "[]");
-        // Add new order to the TOP of the list
         existingOrders.unshift(newOrder);
-        // Save back
         localStorage.setItem("wefpro_orders", JSON.stringify(existingOrders));
         
-        // 3. CLEAR CART (Optional but realistic)
-        localStorage.setItem("wefpro_cart", "[]");
-
+        // 3. CLEAR CART
+        clearCart(); // Make sure this prop is passed from App.jsx!
+        
         // 4. REDIRECT
         setLoading(false);
         window.location.href = `/track?id=${orderId}`;
         
     }, 2000);
   };
+     
 
   return (
     <div className="min-h-screen bg-stone-950 text-stone-200 p-6 md:p-12 font-sans flex items-center justify-center">
