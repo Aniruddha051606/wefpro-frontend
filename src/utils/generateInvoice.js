@@ -14,16 +14,16 @@ export const downloadInvoice = (order) => {
                     <p style="font-size: 12px; color: #666; margin: 0;">GSTIN: 27AABCU9603R1Z</p>
                 </div>
                 <div style="text-align: right;">
-                    <h2 style="font-size: 18px; color: #dc2626; margin: 0;">#${order.invoiceId}</h2>
-                    <p style="font-size: 12px; color: #666; margin: 5px 0;">Date: ${order.date}</p>
+                    <h2 style="font-size: 18px; color: #dc2626; margin: 0;">#${order.invoiceId || 'DEMO-INV'}</h2>
+                    <p style="font-size: 12px; color: #666; margin: 5px 0;">Date: ${order.date || new Date().toLocaleDateString()}</p>
                 </div>
             </div>
 
             <div style="margin-bottom: 40px;">
                 <p style="font-size: 10px; text-transform: uppercase; color: #999; font-weight: bold; margin-bottom: 5px;">Billed To</p>
-                <h3 style="font-size: 16px; margin: 0 0 5px 0;">${order.customerName}</h3>
-                <p style="font-size: 14px; margin: 0; color: #555;">${order.address}, ${order.city} - ${order.pincode}</p>
-                <p style="font-size: 14px; margin: 5px 0 0 0; color: #555;">Phone: ${order.phone}</p>
+                <h3 style="font-size: 16px; margin: 0 0 5px 0;">${order.customerName || 'Guest User'}</h3>
+                <p style="font-size: 14px; margin: 0; color: #555;">${order.address || 'N/A'}, ${order.city || ''} - ${order.pincode || ''}</p>
+                <p style="font-size: 14px; margin: 5px 0 0 0; color: #555;">Phone: ${order.phone || 'N/A'}</p>
             </div>
 
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
@@ -36,7 +36,7 @@ export const downloadInvoice = (order) => {
                     </tr>
                 </thead>
                 <tbody>
-                    ${order.items.map(item => `
+                    ${(order.items || []).map(item => `
                         <tr>
                             <td style="padding: 12px; border-bottom: 1px solid #eee; font-size: 14px;">${item.name}</td>
                             <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-size: 14px;">${item.qty}</td>
@@ -51,22 +51,22 @@ export const downloadInvoice = (order) => {
                 <div style="width: 250px; text-align: right;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; color: #666;">
                         <span>Subtotal</span>
-                        <span>₹${order.amount - (order.amount > 499 ? 0 : 40)}</span>
+                        <span>₹${(order.amount || 0) - ((order.amount || 0) > 499 ? 0 : 40)}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #666;">
                         <span>Shipping</span>
-                        <span>${order.amount > 499 ? "Free" : "₹40"}</span>
+                        <span>${(order.amount || 0) > 499 ? "Free" : "₹40"}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; border-top: 2px solid #333; padding-top: 10px;">
                         <span>Total</span>
-                        <span>₹${order.amount}</span>
+                        <span>₹${order.amount || 0}</span>
                     </div>
                 </div>
             </div>
 
             <div style="margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px; font-size: 12px; color: #999; display: flex; justify-content: space-between;">
                 <span>Thank you for choosing WefPro.</span>
-                <span>Tracking Ref: <b>${order.awb}</b></span>
+                <span>Tracking Ref: <b>${order.awb || 'PENDING'}</b></span>
             </div>
         </div>
     `;
@@ -74,7 +74,7 @@ export const downloadInvoice = (order) => {
     // 2. Configure PDF Options
     const opt = {
         margin:       0,
-        filename:     `Invoice_${order.invoiceId}.pdf`,
+        filename:     `Invoice_${order.invoiceId || 'DEMO'}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2 },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }

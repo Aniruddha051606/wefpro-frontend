@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Package, Truck, CheckCircle, Download, FileText, ArrowRight } from 'lucide-react';
-import { downloadInvoice } from '../utils/generateInvoice'; // <--- IMPORT THIS
+import { downloadInvoice } from '../utils/generateInvoice'; 
 
 const Tracking = () => {
   const [searchParams] = useSearchParams();
@@ -24,25 +24,33 @@ const Tracking = () => {
         setOrderData(foundOrder);
         setLoading(false);
     } else {
+        // SIMULATION MODE (For invalid IDs)
         setTimeout(() => {
             setOrderData({
                 awb: "DEL-" + Math.floor(Math.random() * 900000000),
                 status: "Shipped",
-                invoiceId: null 
+                // Provide fake data so the download button still works for testing
+                invoiceId: "DEMO-INV-001",
+                customerName: "Demo User",
+                amount: 289,
+                items: [{name: "Strawberry Jam", qty: 1, price: 249}]
             });
             setLoading(false);
         }, 2000); 
     }
   }, [orderId]);
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>;
+  if (loading) return <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white font-sans">
+    <div className="w-10 h-10 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+    <p className="uppercase tracking-widest text-xs">Loading Details...</p>
+  </div>;
 
   return (
     <div className="min-h-screen bg-stone-950 text-white font-sans overflow-x-hidden">
       
       {/* HEADER VISUALS */}
       <div className="h-[40vh] w-full relative bg-stone-900 overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover opacity-40 grayscale" />
+        <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover opacity-40 grayscale" alt="Map" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-stone-950"></div>
         <div className="absolute bottom-6 w-full px-6 flex justify-between items-end max-w-2xl mx-auto">
             <div><p className="text-stone-400 text-xs uppercase mb-1">Estimated Arrival</p><h1 className="text-4xl font-serif">{formatDate(deliveryDate)}</h1></div>
@@ -82,6 +90,11 @@ const Tracking = () => {
                     <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 bg-red-600 rounded-full"></div>
                     <h3 className="font-bold text-white">Shipped</h3>
                     <p className="text-xs text-stone-500">{formatDate(today)}, Mahabaleshwar</p>
+                </div>
+                <div className="relative pl-6 opacity-50">
+                     <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 bg-stone-700 rounded-full"></div>
+                     <h3 className="font-bold text-white">Out for Delivery</h3>
+                     <p className="text-xs text-stone-500">Pending</p>
                 </div>
             </div>
         </div>
