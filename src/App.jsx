@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Cart from './pages/Cart';
-import Checkout from './pages/Checkout'; // <--- NEW PAGE
+import Checkout from './pages/Checkout';
 import Tracking from './pages/Tracking';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
@@ -21,6 +21,7 @@ function App() {
     localStorage.setItem("wefpro_cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
+  // 3. FUNCTION TO ADD ITEMS
   const addToCart = (product) => {
     setCartItems((prev) => {
       const existing = prev.find((item) => item.id === product.id);
@@ -33,12 +34,12 @@ function App() {
     });
   };
 
+  // 4. FUNCTION TO REMOVE ITEMS
   const removeFromCart = (id) => {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
-// ... inside App function ...
 
-  // ⚡ NEW: Handle + and - inside the cart
+  // 5. FUNCTION TO UPDATE QUANTITY (+/-)
   const updateQty = (id, amount) => {
     setCartItems((prev) => 
       prev.map((item) => {
@@ -51,28 +52,45 @@ function App() {
     );
   };
 
-  // ... keep existing return ...
-  
-  // ⚡ UPDATE THE ROUTE TO PASS THIS NEW FUNCTION
+  // Calculate total items for Badge
+  const totalItems = cartItems.reduce((acc, item) => acc + item.qty, 0);
+
   return (
     <Router>
-       {/* ... navbar ... */}
-       <Routes>
-          {/* ... other routes ... */}
+      <div className="bg-black min-h-screen text-stone-100 font-sans selection:bg-red-900 selection:text-white">
+        {/* Navbar stays visible on all pages */}
+        <Navbar cartCount={totalItems} /> 
+        
+        <Routes>
+          <Route path="/" element={<Home addToCart={addToCart} />} />
           
+          {/* Cart Route receiving the new updateQty function */}
           <Route 
             path="/cart" 
             element={
               <Cart 
                 cartItems={cartItems} 
                 removeFromCart={removeFromCart} 
-                updateQty={updateQty} // <--- PASS THIS PROP
+                updateQty={updateQty} 
               />
             } 
           />
           
-          {/* ... other routes ... */}
-       </Routes>
+          <Route path="/checkout" element={<Checkout cartItems={cartItems} />} />
+          <Route path="/track" element={<Tracking />} />
+          <Route path="/login" element={<Login />} />
+          
+          {/* Protected Admin Route */}
+          <Route 
+            path="/admin" 
+            element={
+              <PrivateRoute>
+                <Admin />
+              </PrivateRoute>
+            } 
+          />
+        </Routes>
+      </div>
     </Router>
   );
 }
