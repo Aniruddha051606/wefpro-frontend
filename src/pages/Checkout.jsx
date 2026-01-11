@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock } from 'lucide-react';
-import { API_URL } from '../config'; 
+// import { API_URL } from '../config'; // <--- Not needed for demo mode
 
 const Checkout = ({ cartItems }) => {
   const [loading, setLoading] = useState(false);
@@ -13,54 +13,29 @@ const Checkout = ({ cartItems }) => {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // ... (Paste your loadScript function here) ...
-  const loadScript = (src) => {
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = src;
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
+  // ⚡ DEMO MODE PAYMENT HANDLER ⚡
   const handlePayment = async (e) => {
     e.preventDefault(); // Prevent form submit refresh
-    if(!formData.fullName || !formData.address) return alert("Details required");
+    
+    // Basic Validation
+    if(!formData.fullName || !formData.address || !formData.phone) {
+        return alert("Please fill in all details to proceed.");
+    }
     
     setLoading(true);
 
-    // 1. Load Razorpay
-    const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
-    if (!res) return alert('Razorpay SDK failed');
-
-    // 2. Create Order
-    const orderData = await fetch(`${API_URL}/api/payment/order`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: total })
-    }).then((t) => t.json());
-
-    // 3. Options
-    const options = {
-      key: "YOUR_KEY_ID_HERE", // <--- ⚠️ PASTE YOUR KEY ID
-      amount: orderData.amount,
-      currency: "INR",
-      name: "Wefpro Luxury",
-      description: "Payment for Order",
-      order_id: orderData.id,
-      handler: async function (response) {
-        // ... (Paste your Invoice Generation & Redirect Logic here from old Cart.jsx) ...
-        // Ensure you fix the backtick URL bug here too!
-        window.location.href = `/track?id=${orderData.id}`;
-      },
-      prefill: { name: formData.fullName, contact: formData.phone },
-      theme: { color: "#000000" } // Black theme for luxury
-    };
-
-    const paymentObject = new window.Razorpay(options);
-    paymentObject.open();
-    setLoading(false);
+    // 🕒 SIMULATE SERVER DELAY (2 Seconds)
+    // This makes it feel like a "Real" payment is processing
+    setTimeout(() => {
+        
+        // 1. Generate a Fake Order ID (e.g., order_839201)
+        const fakeOrderId = "order_" + Math.floor(Math.random() * 1000000);
+        
+        // 2. Redirect to Tracking Page
+        setLoading(false);
+        window.location.href = `/track?id=${fakeOrderId}`;
+        
+    }, 2000);
   };
 
   return (
@@ -86,7 +61,7 @@ const Checkout = ({ cartItems }) => {
             </div>
             
             <button type="submit" disabled={loading} className="w-full bg-white text-black py-4 rounded font-bold text-lg hover:bg-stone-200 transition mt-6 flex justify-center items-center gap-2">
-               {loading ? "Processing..." : `Pay ₹${total}`} <Lock size={16} />
+               {loading ? "Processing Payment..." : `Pay ₹${total}`} <Lock size={16} />
             </button>
             <p className="text-center text-xs text-stone-600 flex justify-center items-center gap-1">
                 <ShieldCheck size={12}/> 256-bit SSL Secured Payment
