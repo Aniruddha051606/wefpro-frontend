@@ -33,6 +33,31 @@ const Home = ({ addToCart }) => {
     image: heroImg, 
     desc: "74% Real Strawberries." 
   };
+    <section className="bg-black py-24 px-6 border-y border-stone-900">
+    <div className="max-w-4xl mx-auto">
+      <h3 className="text-3xl font-serif text-center mb-12">How We Compare</h3>
+      <div className="grid grid-cols-2 gap-0 border border-stone-800 rounded-3xl overflow-hidden">
+        <div className="p-8 bg-stone-900/30 border-r border-stone-800">
+          <h4 className="text-red-600 font-bold mb-6">Wefpro Jams</h4>
+          <ul className="space-y-4 text-sm">
+            <li className="flex gap-2">✅ 74% Real Whole Fruit</li>
+            <li className="flex gap-2">✅ Traditional Handcrafted</li>
+            <li className="flex gap-2">✅ Zero Artificial Colors</li>
+            <li className="flex gap-2">✅ Small Batch Production</li>
+          </ul>
+        </div>
+        <div className="p-8 bg-stone-950 opacity-60">
+          <h4 className="text-stone-500 font-bold mb-6">Ordinary Jams</h4>
+          <ul className="space-y-4 text-sm">
+            <li className="flex gap-2">❌ 35-45% Fruit Pulp</li>
+            <li className="flex gap-2">❌ Mass Machine Processed</li>
+            <li className="flex gap-2">❌ Synthetic Flavors & Colors</li>
+            <li className="flex gap-2">❌ Heavy Preservatives</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
 
   // TRACK SCROLL
   useEffect(() => {
