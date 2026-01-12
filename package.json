@@ -1,0 +1,12 @@
+{
+  "name": "wefpro-cloud-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install-all": "npm install && cd wefpro-frontend && npm install",
+    "build": "cd wefpro-frontend && npm install && npm run build"
+  },
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}
