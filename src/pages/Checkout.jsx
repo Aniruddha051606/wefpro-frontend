@@ -19,46 +19,55 @@ const Checkout = ({ cartItems, clearCart }) => {
     setLoading(true);
     setStatus("Verifying Payment...");
 
-    setTimeout(() => {
+    // Simulated payment delay
+    setTimeout(async () => {
         setStatus("Generating Tax Invoice...");
         
-        setTimeout(() => {
-            const orderId = "ORD-" + Math.floor(Math.random() * 1000000);
-            const invoiceId = "INV-" + new Date().getFullYear() + "-" + Math.floor(Math.random() * 10000);
-            const awbNumber = "DEL-" + Math.floor(Math.random() * 900000000 + 100000000);
-            
-            setStatus("Booking Delhivery Shipment...");
-            
-            setTimeout(() => {
-                const newOrder = {
-                    _id: Date.now(),
-                    orderId: orderId,
-                    customerName: formData.fullName,
-                    phone: formData.phone,
-                    address: formData.address,
-                    city: formData.city,
-                    pincode: formData.pincode,
-                    items: cartItems,
-                    amount: total,
-                    date: new Date().toLocaleDateString(),
-                    status: "Shipped", 
-                    invoiceId: invoiceId, // Linked ID
-                    awb: awbNumber,       // Linked ID
-                    courier: "Delhivery Express",
-                };
+        const orderId = "ORD-" + Math.floor(Math.random() * 1000000);
+        const invoiceId = "INV-" + new Date().getFullYear() + "-" + Math.floor(Math.random() * 10000);
+        const awbNumber = "DEL-" + Math.floor(Math.random() * 900000000 + 100000000);
+        
+        setStatus("Booking Delhivery Shipment...");
+        
+        // Final Order Object for MongoDB
+        const newOrder = {
+            orderId: orderId,
+            customerName: formData.fullName,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            pincode: formData.pincode,
+            items: cartItems,
+            amount: total,
+            date: new Date().toLocaleDateString(),
+            status: "Shipped", 
+            invoiceId: invoiceId, 
+            awb: awbNumber,      
+            courier: "Delhivery Express",
+        };
 
-                const existingOrders = JSON.parse(localStorage.getItem("wefpro_orders") || "[]");
-                existingOrders.unshift(newOrder);
-                localStorage.setItem("wefpro_orders", JSON.stringify(existingOrders));
-                
+        try {
+            // SYNC TO MONGODB CLOUD
+            const response = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newOrder),
+            });
+
+            if (response.ok) {
                 if (clearCart) clearCart();
-                
                 setLoading(false);
+                // Navigate to tracking page
                 window.location.href = `/track?id=${orderId}`;
-                
-            }, 1500); 
-        }, 1500); 
-    }, 2000); 
+            } else {
+                throw new Error("Failed to sync with Cloud Database");
+            }
+        } catch (error) {
+            console.error("Cloud Error:", error);
+            alert("Order processed but failed to sync to cloud. Please contact support.");
+            setLoading(false);
+        }
+    }, 3000); 
   };
 
   return (
@@ -69,15 +78,15 @@ const Checkout = ({ cartItems, clearCart }) => {
           <form onSubmit={handlePayment} className="space-y-6">
             <div className="space-y-2">
                 <label className="text-xs uppercase tracking-widest text-stone-500">Contact</label>
-                <input name="fullName" onChange={handleChange} placeholder="Full Name" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" />
-                <input name="phone" onChange={handleChange} placeholder="Phone Number" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" />
+                <input name="fullName" onChange={handleChange} placeholder="Full Name" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" required />
+                <input name="phone" onChange={handleChange} placeholder="Phone Number" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" required />
             </div>
             <div className="space-y-2">
                 <label className="text-xs uppercase tracking-widest text-stone-500">Delivery</label>
-                <input name="address" onChange={handleChange} placeholder="Street Address" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" />
+                <input name="address" onChange={handleChange} placeholder="Street Address" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" required />
                 <div className="grid grid-cols-2 gap-4">
-                    <input name="city" onChange={handleChange} placeholder="City" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" />
-                    <input name="pincode" onChange={handleChange} placeholder="PIN Code" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" />
+                    <input name="city" onChange={handleChange} placeholder="City" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" required />
+                    <input name="pincode" onChange={handleChange} placeholder="PIN Code" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" required />
                 </div>
             </div>
             <button type="submit" disabled={loading} className="w-full bg-white text-black py-4 rounded font-bold text-lg hover:bg-stone-200 transition mt-6 flex justify-center items-center gap-2">
