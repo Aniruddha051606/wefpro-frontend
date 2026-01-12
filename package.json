@@ -1,12 +1,27 @@
 {
-  "name": "wefpro-cloud-root",
-  "version": "1.0.0",
+  "name": "wefpro-app",
   "private": true,
+  "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "install-all": "npm install && cd wefpro-frontend && npm install",
-    "build": "cd wefpro-frontend && npm install && npm run build"
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "mongodb": "^6.3.0"
+    "mongodb": "^6.3.0",
+    "lucide-react": "^0.462.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.22.0",
+    "html2pdf.js": "^0.10.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "vite": "^5.1.4"
   }
 }
