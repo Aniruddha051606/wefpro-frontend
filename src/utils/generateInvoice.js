@@ -1,85 +1,59 @@
-import html2pdf from 'html2pdf.js';
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
 export const downloadInvoice = (order) => {
-    // 1. Define the Invoice HTML Structure (Inline Styles for PDF consistency)
-    const element = document.createElement('div');
-    element.innerHTML = `
-        <div style="padding: 40px; font-family: 'Helvetica', sans-serif; color: #333; background: #fff;">
-            
-            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px;">
-                <div>
-                    <h1 style="font-size: 32px; margin: 0; color: #000;">INVOICE</h1>
-                    <p style="font-size: 12px; color: #666; margin: 5px 0;">WefPro Foods Pvt Ltd.</p>
-                    <p style="font-size: 12px; color: #666; margin: 0;">Mahabaleshwar, Maharashtra, 412806</p>
-                    <p style="font-size: 12px; color: #666; margin: 0;">GSTIN: 27AABCU9603R1Z</p>
-                </div>
-                <div style="text-align: right;">
-                    <h2 style="font-size: 18px; color: #dc2626; margin: 0;">#${order.invoiceId || 'DEMO-INV'}</h2>
-                    <p style="font-size: 12px; color: #666; margin: 5px 0;">Date: ${order.date || new Date().toLocaleDateString()}</p>
-                </div>
-            </div>
+  const doc = new jsPDF();
+  
+  // Header - Brand Identity
+  doc.setFontSize(22);
+  doc.setTextColor(220, 38, 38); // Wefpro Red
+  doc.text("WEFPRO", 14, 20);
+  
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text("Handcrafted in Mahabaleshwar", 14, 28);
+  doc.text("FSSAI Lic No: 21525039001364", 14, 33); // Placeholder
+  
+  // Right Side - Invoice Info
+  doc.setTextColor(0);
+  doc.text(`Invoice No: ${order.invoiceId || 'INV-001'}`, 140, 20);
+  doc.text(`Date: ${new Date().toLocaleDateString()}`, 140, 25);
+  doc.text(`Order ID: ${order.orderId}`, 140, 30);
 
-            <div style="margin-bottom: 40px;">
-                <p style="font-size: 10px; text-transform: uppercase; color: #999; font-weight: bold; margin-bottom: 5px;">Billed To</p>
-                <h3 style="font-size: 16px; margin: 0 0 5px 0;">${order.customerName || 'Guest User'}</h3>
-                <p style="font-size: 14px; margin: 0; color: #555;">${order.address || 'N/A'}, ${order.city || ''} - ${order.pincode || ''}</p>
-                <p style="font-size: 14px; margin: 5px 0 0 0; color: #555;">Phone: ${order.phone || 'N/A'}</p>
-            </div>
+  // Billing Details
+  doc.line(14, 40, 195, 40);
+  doc.setFont(undefined, 'bold');
+  doc.text("BILL TO:", 14, 50);
+  doc.setFont(undefined, 'normal');
+  doc.text(order.customerName, 14, 55);
+  doc.text(order.phoneNumber || order.phone, 14, 60);
+  doc.text(order.address, 14, 65, { maxWidth: 80 });
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-                <thead>
-                    <tr style="background: #f9fafb; color: #666; font-size: 12px; text-transform: uppercase;">
-                        <th style="padding: 12px; text-align: left; border-bottom: 1px solid #eee;">Item</th>
-                        <th style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">Qty</th>
-                        <th style="padding: 12px; text-align: right; border-bottom: 1px solid #eee;">Price</th>
-                        <th style="padding: 12px; text-align: right; border-bottom: 1px solid #eee;">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${(order.items || []).map(item => `
-                        <tr>
-                            <td style="padding: 12px; border-bottom: 1px solid #eee; font-size: 14px;">${item.name}</td>
-                            <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-size: 14px;">${item.qty}</td>
-                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #eee; font-size: 14px;">₹${item.price}</td>
-                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #eee; font-size: 14px;">₹${item.price * item.qty}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
+  // Items Table
+  const tableData = order.items.map(item => [
+    item.name,
+    `INR ${item.price}`,
+    item.quantity || item.qty,
+    `INR ${(item.price * (item.quantity || item.qty))}`
+  ]);
 
-            <div style="display: flex; justify-content: flex-end;">
-                <div style="width: 250px; text-align: right;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; color: #666;">
-                        <span>Subtotal</span>
-                        <span>₹${(order.amount || 0) - ((order.amount || 0) > 499 ? 0 : 40)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #666;">
-                        <span>Shipping</span>
-                        <span>${(order.amount || 0) > 499 ? "Free" : "₹40"}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; border-top: 2px solid #333; padding-top: 10px;">
-                        <span>Total</span>
-                        <span>₹${order.amount || 0}</span>
-                    </div>
-                </div>
-            </div>
+  doc.autoTable({
+    startY: 80,
+    head: [['Product', 'Price', 'Qty', 'Total']],
+    body: tableData,
+    theme: 'grid',
+    headStyles: { fillColor: [220, 38, 38] }
+  });
 
-            <div style="margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px; font-size: 12px; color: #999; display: flex; justify-content: space-between;">
-                <span>Thank you for choosing WefPro.</span>
-                <span>Tracking Ref: <b>${order.awb || 'PENDING'}</b></span>
-            </div>
-        </div>
-    `;
+  // Summary
+  const finalY = doc.lastAutoTable.finalY + 10;
+  doc.setFont(undefined, 'bold');
+  doc.text(`Grand Total: INR ${order.totalAmount || order.amount}`, 140, finalY);
 
-    // 2. Configure PDF Options
-    const opt = {
-        margin:       0,
-        filename:     `Invoice_${order.invoiceId || 'DEMO'}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+  // Footer
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text("Thank you for supporting handcrafted products!", 105, 280, { align: "center" });
 
-    // 3. Generate and Save
-    html2pdf().from(element).set(opt).save();
+  doc.save(`Invoice_${order.orderId}.pdf`);
 };

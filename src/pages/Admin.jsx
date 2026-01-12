@@ -13,7 +13,24 @@ const Admin = () => {
   const handleLogout = () => {
     localStorage.removeItem("wefpro_admin_key");
     navigate("/login"); 
+  };// 1. Add Search State
+const [search, setSearch] = useState("");
+
+// 2. Filter logic
+const filteredOrders = orders.filter(o => 
+  o.customerName.toLowerCase().includes(search.toLowerCase()) || 
+  o.orderId.includes(search)
+);
+
+// 3. Status Badge Component
+const StatusBadge = ({ status }) => {
+  const colors = {
+    'Paid': 'bg-green-500/10 text-green-500 border-green-500/20',
+    'Processing': 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+    'Shipped': 'bg-blue-500/10 text-blue-500 border-blue-500/20'
   };
+  return <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${colors[status]}`}>{status}</span>;
+};
 
   const fetchData = async () => {
     try {
