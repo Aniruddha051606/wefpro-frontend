@@ -48,7 +48,7 @@ const Checkout = ({ cartItems, clearCart }) => {
 
         try {
             // SYNC TO MONGODB CLOUD
-            const response = await fetch('/api/orders', {
+            const response = await fetch('/api/order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newOrder),
