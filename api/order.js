@@ -1,5 +1,8 @@
-import dbConnect from '../lib/mongodb';
-import Order from '../models/Order';
+// Add .js to the end of these imports
+import dbConnect from '../lib/mongodb.js'; 
+import Order from '../models/Order.js';     
+
+import axios from 'axios';
 
 export default async function handler(req, res) {
   await dbConnect(); // Connect to MongoDB
@@ -15,7 +18,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // Fallback for non-POST requests to prevent 405 error
   res.setHeader('Allow', ['POST']);
   return res.status(405).end(`Method ${req.method} Not Allowed`);
 }
