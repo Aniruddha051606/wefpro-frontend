@@ -1,7 +1,6 @@
 // Add .js to the end of these imports
 import dbConnect from '../lib/mongodb.js'; 
 import Order from '../models/Order.js';     
-
 import axios from 'axios';
 
 export default async function handler(req, res) {
