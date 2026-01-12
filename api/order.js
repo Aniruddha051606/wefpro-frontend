@@ -1,20 +1,21 @@
-import clientPromise from "../lib/mongodb";
+import dbConnect from '../lib/mongodb';
+import Order from '../models/Order';
 
 export default async function handler(req, res) {
-    try {
-        const client = await clientPromise;
-        const db = client.db("wefpro_db"); 
+  await dbConnect(); // Connect to MongoDB
 
-        if (req.method === 'GET') {
-            const orders = await db.collection("orders").find({}).sort({ _id: -1 }).toArray();
-            return res.status(200).json(orders);
-        } 
-        
-        if (req.method === 'POST') {
-            const result = await db.collection("orders").insertOne(req.body);
-            return res.status(201).json(result);
-        }
-    } catch (e) {
-        return res.status(500).json({ error: "Cloud Connection Failed" });
+  if (req.method === 'POST') {
+    try {
+      // req.body is automatically parsed by Vercel
+      const newOrder = await Order.create(req.body); 
+      return res.status(201).json({ success: true, data: newOrder });
+    } catch (error) {
+      console.error("Cloud Sync Error:", error);
+      return res.status(500).json({ success: false, error: error.message });
     }
+  }
+
+  // Fallback for non-POST requests to prevent 405 error
+  res.setHeader('Allow', ['POST']);
+  return res.status(405).end(`Method ${req.method} Not Allowed`);
 }
