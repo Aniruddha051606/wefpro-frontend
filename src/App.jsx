@@ -13,6 +13,8 @@ import Tracking from './pages/Tracking';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
 import Invoice from './pages/Invoice';
+import NotFound from './pages/NotFound';
+import { Privacy, Terms, Refund } from './pages/Legal';
 
 // 1. HELPER COMPONENT TO HIDE NAVBAR ON ADMIN PAGES
 const AppContent = () => {
@@ -64,6 +66,10 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
         <Route path="/invoice/:id" element={<Invoice />} />
+        <Route path="/privacy" element={<Privacy />} />
+       <Route path="/terms" element={<Terms />} />
+       <Route path="/refund" element={<Refund />} />
+       <Route path="*" element={<NotFound />} /> {/* Catch-all 404 */}
       </Routes>
     </div>
   );
