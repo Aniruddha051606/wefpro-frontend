@@ -2,7 +2,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 
 export const downloadInvoice = (order) => {
-  // 🛡️ Safety: Stop if no data
+  // 🛡️ Guard Clause: Prevents crash if order is null
   if (!order) return alert("Error: Order data is missing!");
 
   try {
@@ -30,11 +30,11 @@ export const downloadInvoice = (order) => {
     doc.text("BILL TO:", 14, 50);
     doc.setFont(undefined, 'normal');
     
-    // 🛡️ Safe Strings (Prevents Crash)
+    // 🛡️ Safety Checks: Using 'String()' and '||' prevents crashes on missing data
     doc.text(String(order.customerName || 'Guest'), 14, 55);
     doc.text(String(order.phoneNumber || order.phone || 'No Phone'), 14, 60);
     
-    // Handle Address Wrapping safely
+    // Multi-line address logic
     const safeAddress = String(order.address || 'Address not provided');
     const addressLines = doc.splitTextToSize(safeAddress, 80);
     doc.text(addressLines, 14, 65);

@@ -21,7 +21,7 @@ const Checkout = ({ cartItems, clearCart }) => {
     setLoading(true);
     setStatus("Verifying Payment...");
 
-    // ⚡ FASTER: 1.5 Seconds (was 3000)
+    // ⚡ FASTER: 1.5 Seconds (Old code was 3000)
     setTimeout(async () => {
         setStatus("Confirming Order...");
         
