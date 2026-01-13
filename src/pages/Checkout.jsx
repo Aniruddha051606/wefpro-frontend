@@ -21,16 +21,16 @@ const Checkout = ({ cartItems, clearCart }) => {
     setLoading(true);
     setStatus("Verifying Payment...");
 
-    // ⚡ FASTER: 1.5 Seconds (Old code was 3000)
     setTimeout(async () => {
         setStatus("Confirming Order...");
         
         const orderId = "ORD-" + Math.floor(Math.random() * 1000000);
         const invoiceId = "INV-" + new Date().getFullYear() + "-" + Math.floor(Math.random() * 10000);
-        const awbNumber = "DEL-" + Math.floor(Math.random() * 900000000 + 100000000);
+        const awbNumber = null; // AWB generated later by admin
         
         const newOrder = {
-            orderId: orderId,
+            orderId,
+            invoiceId,
             customerName: formData.fullName,
             phone: formData.phone,
             address: `${formData.address}, ${formData.city} - ${formData.pincode}`,
@@ -38,7 +38,6 @@ const Checkout = ({ cartItems, clearCart }) => {
             totalAmount: total,
             date: new Date().toISOString(),
             status: "Paid", 
-            invoiceId: invoiceId, 
             awb: awbNumber
         };
 
@@ -52,20 +51,14 @@ const Checkout = ({ cartItems, clearCart }) => {
             if (response.ok) {
                 if (clearCart) clearCart();
                 setLoading(false);
-                
-                // 🟢 NEW: Redirect to Success Page with Data
                 navigate('/order-success', { 
-                    state: { 
-                        orderId: orderId, 
-                        amount: total, 
-                        customerName: formData.fullName 
-                    } 
+                    state: { orderId, amount: total, customerName: formData.fullName } 
                 });
             } else {
                 throw new Error("Failed to sync");
             }
         } catch (error) {
-            console.error("Cloud Error:", error);
+            console.error("Error:", error);
             alert("Connection failed. Please contact support.");
             setLoading(false);
         }

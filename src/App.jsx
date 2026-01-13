@@ -13,15 +13,12 @@ import Tracking from './pages/Tracking';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
 import Invoice from './pages/Invoice';
+import OrderSuccess from './pages/OrderSuccess'; // <--- NEW
 import NotFound from './pages/NotFound';
 import { Privacy, Terms, Refund } from './pages/Legal';
-import OrderSuccess from './pages/OrderSuccess';
 
-// HELPER: Main Content Wrapper
 const AppContent = () => {
   const location = useLocation();
-  
-  // Cart State with LocalStorage Persistence
   const [cartItems, setCartItems] = useState(() => {
     try {
       const saved = localStorage.getItem("wefpro_cart");
@@ -33,13 +30,10 @@ const AppContent = () => {
     localStorage.setItem("wefpro_cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Cart Actions
   const addToCart = (product) => {
     setCartItems(prev => {
       const exist = prev.find(x => x.id === product.id);
-      if (exist) {
-        return prev.map(x => x.id === product.id ? { ...exist, qty: exist.qty + 1 } : x);
-      }
+      if (exist) return prev.map(x => x.id === product.id ? { ...exist, qty: exist.qty + 1 } : x);
       return [...prev, { ...product, qty: 1 }];
     });
   };
@@ -54,8 +48,6 @@ const AppContent = () => {
 
   const clearCart = () => setCartItems([]);
   const totalItems = cartItems.reduce((acc, item) => acc + item.qty, 0);
-
-  // Hide Navbar on Admin/Login pages
   const isNoNavRoute = location.pathname.startsWith('/admin') || location.pathname === '/login';
 
   return (
@@ -66,22 +58,14 @@ const AppContent = () => {
         <Route path="/" element={<Home addToCart={addToCart} />} />
         <Route path="/cart" element={<Cart cartItems={cartItems} addToCart={addToCart} removeFromCart={removeFromCart} />} />
         <Route path="/checkout" element={<Checkout cartItems={cartItems} clearCart={clearCart} />} />
-        <Route path="/order-success" element={<OrderSuccess />} /> {/* <--- ADD THIS */}
+        <Route path="/order-success" element={<OrderSuccess />} /> {/* <--- NEW */}
         <Route path="/track" element={<Tracking />} />
-        
-        {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
-        
-        {/* Utility Routes */}
         <Route path="/invoice/:id" element={<Invoice />} />
-        
-        {/* Legal Routes */}
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/refund" element={<Refund />} />
-        
-        {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
