@@ -14,7 +14,11 @@ const OrderSchema = new mongoose.Schema({
     }
   ],
   totalAmount: { type: Number, required: true },
-  status: { type: String, default: 'Pending' },
+  
+  // 🟢 NEW: Separate Statuses
+  paymentStatus: { type: String, enum: ['Paid', 'Pending', 'Failed'], default: 'Pending' },
+  status: { type: String, default: 'Processing' }, // Logistics Status (Processing, Shipped, Delivered)
+  
   trackingId: { type: String, default: null },
   createdAt: { type: Date, default: Date.now }
 });
