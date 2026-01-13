@@ -1,8 +1,8 @@
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable"; // 1. Change this import
 
 export const downloadInvoice = (order) => {
-  // 🛡️ Guard Clause: Prevents crash if order is null
+  // 🛡️ Safety: Stop if no data
   if (!order) return alert("Error: Order data is missing!");
 
   try {
@@ -30,11 +30,11 @@ export const downloadInvoice = (order) => {
     doc.text("BILL TO:", 14, 50);
     doc.setFont(undefined, 'normal');
     
-    // 🛡️ Safety Checks: Using 'String()' and '||' prevents crashes on missing data
+    // 🛡️ Safe Strings
     doc.text(String(order.customerName || 'Guest'), 14, 55);
     doc.text(String(order.phoneNumber || order.phone || 'No Phone'), 14, 60);
     
-    // Multi-line address logic
+    // Handle Address Wrapping safely
     const safeAddress = String(order.address || 'Address not provided');
     const addressLines = doc.splitTextToSize(safeAddress, 80);
     doc.text(addressLines, 14, 65);
@@ -47,7 +47,8 @@ export const downloadInvoice = (order) => {
       `INR ${(item.price * (item.quantity || item.qty || 1))}`
     ]);
 
-    doc.autoTable({
+    // 2. 🟢 FIX: Call autoTable() directly instead of doc.autoTable()
+    autoTable(doc, {
       startY: 85,
       head: [['Product', 'Price', 'Qty', 'Total']],
       body: tableData,
@@ -56,7 +57,10 @@ export const downloadInvoice = (order) => {
     });
 
     // Summary
-    const finalY = doc.lastAutoTable.finalY + 10;
+    // Note: use doc.lastAutoTable.finalY access via the imported object if needed, 
+    // but usually the plugin attaches 'lastAutoTable' to doc state correctly.
+    const finalY = (doc.lastAutoTable?.finalY || 85) + 10;
+    
     doc.setFont(undefined, 'bold');
     doc.text(`Grand Total: INR ${order.totalAmount || order.amount || 0}`, 140, finalY);
 
@@ -68,6 +72,6 @@ export const downloadInvoice = (order) => {
     doc.save(`Invoice_${order.orderId}.pdf`);
   } catch (err) {
     console.error("PDF Gen Error:", err);
-    alert("Could not generate PDF. Please contact support.");
+    alert("Could not generate PDF. Check console for details.");
   }
 };
