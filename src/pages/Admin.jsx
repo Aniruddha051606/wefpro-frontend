@@ -90,8 +90,7 @@ const Admin = () => {
     const rows = orders.map(o => {
         const safeName = (o.customerName || "").replace(/"/g, '""');
         const safeAddr = (o.address || "").replace(/"/g, '""').replace(/\n/g, " ");
-        // Ensure we export both statuses
-        return `"${o.orderId}","${new Date(o.createdAt).toLocaleDateString()}","${safeName}","${o.paymentStatus || 'Paid'}","${o.status}",${o.totalAmount},"${o.phoneNumber}","${safeAddr}","${o.trackingId || ''}"`;
+        return `"${o.orderId}","${new Date(o.createdAt).toLocaleDateString()}","${o.paymentStatus || 'Paid'}","${o.status}",${o.totalAmount},"${o.phoneNumber}","${safeAddr}","${o.trackingId || ''}"`;
     }).join("\n");
     
     const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(headers + rows);
@@ -119,12 +118,21 @@ const Admin = () => {
     );
   };
 
+  // 📊 STATS CALCULATION (Fixed)
+  const totalRevenue = orders.reduce((acc, curr) => {
+    const amount = parseFloat(curr.totalAmount || curr.amount || 0);
+    return acc + amount;
+  }, 0);
+  
+  // Pending = Orders waiting to be shipped (Processing + No AWB)
+  const actionNeeded = orders.filter(o => o.status === 'Processing' && !o.trackingId).length;
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex relative">
       <aside className="w-64 bg-slate-900 text-white hidden md:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-slate-800">
             <h1 className="text-2xl font-serif font-bold tracking-tighter">WEFPRO <span className="text-red-500">.</span></h1>
-            <p className="text-slate-500 text-xs mt-1">Command Center v3.1</p>
+            <p className="text-slate-500 text-xs mt-1">Command Center v3.2</p>
         </div>
         <nav className="flex-1 p-4 space-y-2">
             <div className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-lg font-medium"><LayoutDashboard size={20} /> Dashboard</div>
@@ -141,6 +149,21 @@ const Admin = () => {
             <button onClick={downloadReport} className="bg-white border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 flex items-center gap-2 text-sm font-medium transition">
                 <Download size={16} /> Export CSV
             </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex justify-between">
+                <div><p className="text-slate-500 text-sm">Total Revenue</p><h3 className="text-3xl font-bold mt-1">₹{totalRevenue.toLocaleString()}</h3></div>
+                <div className="p-3 bg-green-50 text-green-600 rounded-lg h-fit"><DollarSign size={24}/></div>
+            </div>
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex justify-between">
+                <div><p className="text-slate-500 text-sm">Total Orders</p><h3 className="text-3xl font-bold mt-1">{orders.length}</h3></div>
+                <div className="p-3 bg-blue-50 text-blue-600 rounded-lg h-fit"><Package size={24}/></div>
+            </div>
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex justify-between">
+                <div><p className="text-slate-500 text-sm">Pending Shipments</p><h3 className="text-3xl font-bold mt-1">{actionNeeded}</h3></div>
+                <div className="p-3 bg-orange-50 text-orange-600 rounded-lg h-fit"><Clock size={24}/></div>
+            </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -172,14 +195,14 @@ const Admin = () => {
                                         <span className="text-xs text-slate-500">{order.phoneNumber}</span>
                                     </td>
                                     
-                                    {/* 💰 PAYMENT BADGE */}
+                                    {/* 💰 PAYMENT BADGE (Always Paid) */}
                                     <td className="p-4">
                                         <span className="px-2 py-1 rounded text-[10px] font-bold bg-green-100 text-green-700 border border-green-200 flex items-center w-fit gap-1">
                                             <CheckCircle size={10} /> {order.paymentStatus || "Paid"}
                                         </span>
                                     </td>
 
-                                    {/* 📦 LOGISTICS BADGE */}
+                                    {/* 📦 LOGISTICS BADGE (Clickable) */}
                                     <td className="p-4">
                                         <LogisticsBadge order={order} />
                                     </td>
@@ -206,7 +229,7 @@ const Admin = () => {
                 </div>
             </div>
 
-            {/* Price Control Section (Kept same) */}
+            {/* Price Control Section */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-100 h-fit p-6">
                 <h3 className="font-bold mb-4">Product Pricing</h3>
                 <div className="relative mb-4">
@@ -233,7 +256,17 @@ const Admin = () => {
                         <p className="text-slate-500 text-xs uppercase tracking-widest mb-2 flex items-center gap-2"><MapPin size={14}/> Shipping Address</p>
                         <p className="text-slate-800 font-medium text-sm leading-relaxed">{selectedOrder.address}</p>
                     </div>
-                    {/* ... other details ... */}
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <p className="text-slate-500 text-xs uppercase tracking-widest mb-2">Items</p>
+                        <ul className="space-y-2">
+                            {selectedOrder.items?.map((item, idx) => (
+                                <li key={idx} className="flex justify-between text-sm">
+                                    <span>{item.name} x {item.quantity || item.qty}</span>
+                                    <span className="font-mono">₹{item.price * (item.quantity || item.qty)}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                     <div className="border-t border-slate-100 pt-4 flex justify-between font-bold text-lg">
                         <span>Total Paid</span><span>₹{selectedOrder.totalAmount}</span>
                     </div>

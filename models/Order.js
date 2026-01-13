@@ -15,16 +15,11 @@ const OrderSchema = new mongoose.Schema({
   ],
   totalAmount: { type: Number, required: true },
   
-  // 🟢 NEW: Separate Statuses
-  paymentStatus: { 
-    type: String, 
-    enum: ['Paid', 'Pending', 'Failed'], 
-    default: 'Pending' 
-  },
-  status: { 
-    type: String, 
-    default: 'Processing' // This is now purely for Logistics
-  }, 
+  // 💰 FORCE DEFAULT TO "Paid"
+  paymentStatus: { type: String, default: 'Paid' },
+  
+  // 📦 LOGISTICS STATUS
+  status: { type: String, default: 'Processing' }, 
   
   trackingId: { type: String, default: null },
   createdAt: { type: Date, default: Date.now }
