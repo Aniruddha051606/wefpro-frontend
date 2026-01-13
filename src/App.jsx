@@ -15,6 +15,7 @@ import Admin from './pages/Admin';
 import Invoice from './pages/Invoice';
 import NotFound from './pages/NotFound';
 import { Privacy, Terms, Refund } from './pages/Legal';
+import OrderSuccess from './pages/OrderSuccess';
 
 // HELPER: Main Content Wrapper
 const AppContent = () => {
@@ -65,6 +66,7 @@ const AppContent = () => {
         <Route path="/" element={<Home addToCart={addToCart} />} />
         <Route path="/cart" element={<Cart cartItems={cartItems} addToCart={addToCart} removeFromCart={removeFromCart} />} />
         <Route path="/checkout" element={<Checkout cartItems={cartItems} clearCart={clearCart} />} />
+        <Route path="/order-success" element={<OrderSuccess />} /> {/* <--- ADD THIS */}
         <Route path="/track" element={<Tracking />} />
         
         {/* Auth Routes */}

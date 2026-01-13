@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // 1. Import Hook
 
 const Checkout = ({ cartItems, clearCart }) => {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("Processing Payment..."); 
   const [formData, setFormData] = useState({ fullName: '', phone: '', address: '', city: '', pincode: '' });
+  const navigate = useNavigate(); // 2. Initialize Hook
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
   const shipping = subtotal > 499 ? 0 : 40;
@@ -29,7 +31,6 @@ const Checkout = ({ cartItems, clearCart }) => {
         
         setStatus("Booking Delhivery Shipment...");
         
-        // Final Order Object for MongoDB
         const newOrder = {
             orderId: orderId,
             customerName: formData.fullName,
@@ -40,14 +41,13 @@ const Checkout = ({ cartItems, clearCart }) => {
             items: cartItems,
             amount: total,
             date: new Date().toLocaleDateString(),
-            status: "Shipped", 
+            status: "Paid", // Changed from "Shipped" to "Paid" initially
             invoiceId: invoiceId, 
             awb: awbNumber,      
             courier: "Delhivery Express",
         };
 
         try {
-            // SYNC TO MONGODB CLOUD
             const response = await fetch('/api/order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -57,14 +57,21 @@ const Checkout = ({ cartItems, clearCart }) => {
             if (response.ok) {
                 if (clearCart) clearCart();
                 setLoading(false);
-                // Navigate to tracking page
-                window.location.href = `/track?id=${orderId}`;
+                
+                // 3. Navigate to Success Page with Data
+                navigate('/order-success', { 
+                    state: { 
+                        orderId: orderId, 
+                        amount: total, 
+                        customerName: formData.fullName 
+                    } 
+                });
             } else {
                 throw new Error("Failed to sync with Cloud Database");
             }
         } catch (error) {
             console.error("Cloud Error:", error);
-            alert("Order processed but failed to sync to cloud. Please contact support.");
+            alert("Order processed but failed to sync. Please contact support.");
             setLoading(false);
         }
     }, 3000); 
@@ -76,6 +83,7 @@ const Checkout = ({ cartItems, clearCart }) => {
         <div>
           <h2 className="text-3xl font-serif mb-8 text-white">Secure Checkout</h2>
           <form onSubmit={handlePayment} className="space-y-6">
+            {/* ... (Keep your existing inputs exactly as they were) ... */}
             <div className="space-y-2">
                 <label className="text-xs uppercase tracking-widest text-stone-500">Contact</label>
                 <input name="fullName" onChange={handleChange} placeholder="Full Name" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" required />
@@ -89,6 +97,8 @@ const Checkout = ({ cartItems, clearCart }) => {
                     <input name="pincode" onChange={handleChange} placeholder="PIN Code" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" required />
                 </div>
             </div>
+            {/* ... (End inputs) ... */}
+
             <button type="submit" disabled={loading} className="w-full bg-white text-black py-4 rounded font-bold text-lg hover:bg-stone-200 transition mt-6 flex justify-center items-center gap-2">
                {loading ? <span className="animate-pulse">{status}</span> : <>Pay ₹{total} <Lock size={16} /></>}
             </button>
