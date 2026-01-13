@@ -1,59 +1,98 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Printer, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Printer, ArrowLeft, CheckCircle, Download, FileCheck } from 'lucide-react';
+import { downloadInvoice } from '../utils/generateInvoice';
+
+// 🦴 SKELETON LOADER
+const InvoiceSkeleton = () => (
+  <div className="min-h-screen bg-stone-100 p-4 md:p-8 flex justify-center font-sans">
+    <div className="bg-white w-full max-w-2xl shadow-sm p-8 md:p-12 rounded-lg border border-stone-200">
+      <div className="space-y-8 animate-pulse">
+        <div className="flex justify-between">
+            <div className="h-8 w-32 bg-stone-200 rounded"></div>
+            <div className="h-8 w-24 bg-stone-200 rounded"></div>
+        </div>
+        <div className="space-y-2">
+            <div className="h-4 w-full bg-stone-100 rounded"></div>
+            <div className="h-4 w-full bg-stone-100 rounded"></div>
+            <div className="h-4 w-2/3 bg-stone-100 rounded"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 const Invoice = () => {
-  const { id } = useParams(); // This is the Order ID passed from the URL
+  const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // State to track if we already auto-downloaded to prevent loops
+  const [hasDownloaded, setHasDownloaded] = useState(false);
 
   useEffect(() => {
     const fetchInvoice = async () => {
       try {
-        // 1. Try to get order from the Server (Public API)
         const response = await fetch(`/api/track?orderId=${id}`);
         const data = await response.json();
 
         if (response.ok && data.success) {
           setOrder(data.data);
         } else {
-          // 2. Fallback: Try Local Storage (For Admins or recent checkout)
+          // Fallback: Try Local Storage
           const allOrders = JSON.parse(localStorage.getItem("wefpro_orders") || "[]");
-          // Check both OrderID and InvoiceID to be safe
           const found = allOrders.find(o => o.orderId === id || o.invoiceId === id);
-          
-          if (found) {
-            setOrder(found);
-          } else {
-            setError("Invoice not found.");
-          }
+          if (found) setOrder(found);
+          else setError("Invoice not found.");
         }
       } catch (err) {
-        console.error("Invoice Load Error:", err);
-        setError("Could not load invoice.");
+        setError("Could not retrieve invoice.");
       } finally {
         setLoading(false);
       }
     };
-
     if (id) fetchInvoice();
   }, [id]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-sans text-stone-500 animate-pulse">Generating Invoice...</div>;
-  if (error || !order) return <div className="min-h-screen flex items-center justify-center font-sans text-red-500 font-bold">{error || "Invoice not found"}</div>;
+  // ⚡ AUTO-DOWNLOAD EFFECT
+  useEffect(() => {
+    if (order && !hasDownloaded) {
+      // Small delay to ensure UI renders first (smoothness)
+      const timer = setTimeout(() => {
+        downloadInvoice(order);
+        setHasDownloaded(true);
+      }, 1000); 
+      return () => clearTimeout(timer);
+    }
+  }, [order, hasDownloaded]);
 
-  // Helper to ensure numbers don't crash
+  if (loading) return <InvoiceSkeleton />;
+  
+  if (error || !order) return (
+    <div className="min-h-screen flex flex-col items-center justify-center font-sans text-stone-500 gap-4">
+        <p className="text-xl">{error || "Invoice not found"}</p>
+        <Link to="/" className="text-red-600 hover:underline">Return Home</Link>
+    </div>
+  );
+
   const safeTotal = parseFloat(order.totalAmount || order.amount || 0);
   const shippingCost = safeTotal > 499 ? 0 : 40;
   const subtotal = safeTotal - shippingCost;
 
   return (
     <div className="min-h-screen bg-stone-100 p-4 md:p-8 flex justify-center font-sans text-slate-800">
-      <div className="bg-white w-full max-w-2xl shadow-2xl p-8 md:p-12 relative h-fit rounded-lg">
+      <div className="bg-white w-full max-w-2xl shadow-2xl p-8 md:p-12 relative h-fit rounded-lg animate-fade-in-up">
         
+        {/* 🟢 Notification Banner */}
+        {hasDownloaded && (
+            <div className="absolute top-0 left-0 right-0 bg-green-600 text-white text-xs font-bold text-center py-2 rounded-t-lg animate-fade-in flex items-center justify-center gap-2">
+                <FileCheck size={14} /> Invoice Downloaded Automatically
+            </div>
+        )}
+
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start border-b border-stone-200 pb-8 mb-8 gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start border-b border-stone-200 pb-8 mb-8 gap-6 mt-6">
             <div>
                 <h1 className="text-4xl font-serif font-bold text-slate-900 tracking-tighter">INVOICE</h1>
                 <p className="text-slate-500 text-sm mt-2 font-bold">WefPro Foods Pvt Ltd.</p>
@@ -61,7 +100,7 @@ const Invoice = () => {
                 <p className="text-slate-500 text-sm">GSTIN: 27AABCU9603R1Z</p>
             </div>
             <div className="text-left md:text-right">
-                <h3 className="font-mono text-xl text-red-600 font-bold">#{order.invoiceId || 'PENDING'}</h3>
+                <h3 className="font-mono text-xl text-red-600 font-bold">#{order.invoiceId || 'INV-PENDING'}</h3>
                 <p className="text-slate-500 text-sm">Date: {new Date(order.createdAt || order.date).toLocaleDateString()}</p>
                 <p className="text-slate-500 text-sm mt-1">Order Ref: {order.orderId}</p>
             </div>
@@ -72,7 +111,7 @@ const Invoice = () => {
             <div>
                 <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-2">Billed To</p>
                 <h3 className="font-bold text-lg">{order.customerName}</h3>
-                <p className="text-slate-600 w-full md:w-64 text-sm leading-relaxed">
+                <p className="text-slate-600 w-full md:w-64 text-sm leading-relaxed whitespace-pre-wrap">
                     {order.address || "Address not provided"}
                 </p>
                 <p className="text-slate-600 text-sm mt-2 font-mono">{order.phoneNumber || order.phone}</p>
@@ -98,7 +137,7 @@ const Invoice = () => {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
-                    {order.items && order.items.map((item, index) => (
+                    {(order.items || []).map((item, index) => (
                         <tr key={index}>
                             <td className="p-4 font-medium">{item.name}</td>
                             <td className="p-4 text-center">{item.quantity || item.qty}</td>
@@ -134,12 +173,16 @@ const Invoice = () => {
             <p className="mt-1">Thank you for choosing WefPro.</p>
         </div>
 
-        {/* Print Button */}
-        <div className="fixed top-6 right-6 md:top-8 md:right-8 flex flex-col gap-4 print:hidden z-50">
-            <button onClick={() => window.print()} className="bg-slate-900 text-white p-4 rounded-full shadow-xl hover:scale-110 transition flex items-center justify-center">
-                <Printer size={20} />
+        {/* Buttons (Manual fallback) */}
+        <div className="fixed top-6 right-6 md:top-8 md:right-8 flex flex-col gap-3 print:hidden z-50">
+            <button 
+                onClick={() => downloadInvoice(order)} 
+                className="bg-slate-900 text-white p-4 rounded-full shadow-xl hover:bg-red-600 transition flex items-center justify-center group"
+                title="Download Again"
+            >
+               <Download size={20} className="group-hover:scale-110 transition" />
             </button>
-            <Link to="/" className="bg-white text-slate-900 p-4 rounded-full shadow-xl hover:scale-110 transition flex items-center justify-center">
+            <Link to="/" className="bg-white text-slate-900 p-4 rounded-full shadow-xl hover:bg-slate-50 transition flex items-center justify-center border border-slate-200">
                 <ArrowLeft size={20} />
             </Link>
         </div>
