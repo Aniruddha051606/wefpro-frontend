@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom'; // 1. Import Hook
+import { useNavigate } from 'react-router-dom';
 
 const Checkout = ({ cartItems, clearCart }) => {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("Processing Payment..."); 
   const [formData, setFormData] = useState({ fullName: '', phone: '', address: '', city: '', pincode: '' });
-  const navigate = useNavigate(); // 2. Initialize Hook
+  const navigate = useNavigate();
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
   const shipping = subtotal > 499 ? 0 : 40;
@@ -21,30 +21,25 @@ const Checkout = ({ cartItems, clearCart }) => {
     setLoading(true);
     setStatus("Verifying Payment...");
 
-    // Simulated payment delay
+    // ⚡ FASTER: 1.5 Seconds (was 3000)
     setTimeout(async () => {
-        setStatus("Generating Tax Invoice...");
+        setStatus("Confirming Order...");
         
         const orderId = "ORD-" + Math.floor(Math.random() * 1000000);
         const invoiceId = "INV-" + new Date().getFullYear() + "-" + Math.floor(Math.random() * 10000);
         const awbNumber = "DEL-" + Math.floor(Math.random() * 900000000 + 100000000);
         
-        setStatus("Booking Delhivery Shipment...");
-        
         const newOrder = {
             orderId: orderId,
             customerName: formData.fullName,
             phone: formData.phone,
-            address: formData.address,
-            city: formData.city,
-            pincode: formData.pincode,
+            address: `${formData.address}, ${formData.city} - ${formData.pincode}`,
             items: cartItems,
-            amount: total,
-            date: new Date().toLocaleDateString(),
-            status: "Paid", // Changed from "Shipped" to "Paid" initially
+            totalAmount: total,
+            date: new Date().toISOString(),
+            status: "Paid", 
             invoiceId: invoiceId, 
-            awb: awbNumber,      
-            courier: "Delhivery Express",
+            awb: awbNumber
         };
 
         try {
@@ -58,7 +53,7 @@ const Checkout = ({ cartItems, clearCart }) => {
                 if (clearCart) clearCart();
                 setLoading(false);
                 
-                // 3. Navigate to Success Page with Data
+                // 🟢 NEW: Redirect to Success Page with Data
                 navigate('/order-success', { 
                     state: { 
                         orderId: orderId, 
@@ -67,14 +62,14 @@ const Checkout = ({ cartItems, clearCart }) => {
                     } 
                 });
             } else {
-                throw new Error("Failed to sync with Cloud Database");
+                throw new Error("Failed to sync");
             }
         } catch (error) {
             console.error("Cloud Error:", error);
-            alert("Order processed but failed to sync. Please contact support.");
+            alert("Connection failed. Please contact support.");
             setLoading(false);
         }
-    }, 3000); 
+    }, 1500); 
   };
 
   return (
@@ -83,7 +78,6 @@ const Checkout = ({ cartItems, clearCart }) => {
         <div>
           <h2 className="text-3xl font-serif mb-8 text-white">Secure Checkout</h2>
           <form onSubmit={handlePayment} className="space-y-6">
-            {/* ... (Keep your existing inputs exactly as they were) ... */}
             <div className="space-y-2">
                 <label className="text-xs uppercase tracking-widest text-stone-500">Contact</label>
                 <input name="fullName" onChange={handleChange} placeholder="Full Name" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" required />
@@ -97,8 +91,6 @@ const Checkout = ({ cartItems, clearCart }) => {
                     <input name="pincode" onChange={handleChange} placeholder="PIN Code" className="w-full bg-stone-900 border border-stone-800 p-4 rounded text-white focus:outline-none focus:border-stone-600" required />
                 </div>
             </div>
-            {/* ... (End inputs) ... */}
-
             <button type="submit" disabled={loading} className="w-full bg-white text-black py-4 rounded font-bold text-lg hover:bg-stone-200 transition mt-6 flex justify-center items-center gap-2">
                {loading ? <span className="animate-pulse">{status}</span> : <>Pay ₹{total} <Lock size={16} /></>}
             </button>

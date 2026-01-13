@@ -2,58 +2,72 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 
 export const downloadInvoice = (order) => {
-  const doc = new jsPDF();
-  
-  // Header - Brand Identity
-  doc.setFontSize(22);
-  doc.setTextColor(220, 38, 38); // Wefpro Red
-  doc.text("WEFPRO", 14, 20);
-  
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text("Handcrafted in Mahabaleshwar", 14, 28);
-  doc.text("FSSAI Lic No: 21525039001364", 14, 33); // Placeholder
-  
-  // Right Side - Invoice Info
-  doc.setTextColor(0);
-  doc.text(`Invoice No: ${order.invoiceId || 'INV-001'}`, 140, 20);
-  doc.text(`Date: ${new Date().toLocaleDateString()}`, 140, 25);
-  doc.text(`Order ID: ${order.orderId}`, 140, 30);
+  // 🛡️ Safety: Stop if no data
+  if (!order) return alert("Error: Order data is missing!");
 
-  // Billing Details
-  doc.line(14, 40, 195, 40);
-  doc.setFont(undefined, 'bold');
-  doc.text("BILL TO:", 14, 50);
-  doc.setFont(undefined, 'normal');
-  doc.text(order.customerName, 14, 55);
-  doc.text(order.phoneNumber || order.phone, 14, 60);
-  doc.text(order.address, 14, 65, { maxWidth: 80 });
+  try {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(220, 38, 38); 
+    doc.text("WEFPRO", 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("Handcrafted in Mahabaleshwar", 14, 28);
+    doc.text("FSSAI Lic No: 215XXXXXXXXXXX", 14, 33); 
+    
+    // Invoice Info
+    doc.setTextColor(0);
+    doc.text(`Invoice No: ${order.invoiceId || 'INV-GEN'}`, 140, 20);
+    doc.text(`Date: ${new Date(order.createdAt || Date.now()).toLocaleDateString()}`, 140, 25);
+    doc.text(`Order ID: ${order.orderId}`, 140, 30);
 
-  // Items Table
-  const tableData = order.items.map(item => [
-    item.name,
-    `INR ${item.price}`,
-    item.quantity || item.qty,
-    `INR ${(item.price * (item.quantity || item.qty))}`
-  ]);
+    // Billing Details
+    doc.line(14, 40, 195, 40);
+    doc.setFont(undefined, 'bold');
+    doc.text("BILL TO:", 14, 50);
+    doc.setFont(undefined, 'normal');
+    
+    // 🛡️ Safe Strings (Prevents Crash)
+    doc.text(String(order.customerName || 'Guest'), 14, 55);
+    doc.text(String(order.phoneNumber || order.phone || 'No Phone'), 14, 60);
+    
+    // Handle Address Wrapping safely
+    const safeAddress = String(order.address || 'Address not provided');
+    const addressLines = doc.splitTextToSize(safeAddress, 80);
+    doc.text(addressLines, 14, 65);
 
-  doc.autoTable({
-    startY: 80,
-    head: [['Product', 'Price', 'Qty', 'Total']],
-    body: tableData,
-    theme: 'grid',
-    headStyles: { fillColor: [220, 38, 38] }
-  });
+    // Items Table
+    const tableData = (order.items || []).map(item => [
+      item.name,
+      `INR ${item.price}`,
+      item.quantity || item.qty || 1,
+      `INR ${(item.price * (item.quantity || item.qty || 1))}`
+    ]);
 
-  // Summary
-  const finalY = doc.lastAutoTable.finalY + 10;
-  doc.setFont(undefined, 'bold');
-  doc.text(`Grand Total: INR ${order.totalAmount || order.amount}`, 140, finalY);
+    doc.autoTable({
+      startY: 85,
+      head: [['Product', 'Price', 'Qty', 'Total']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [220, 38, 38] }
+    });
 
-  // Footer
-  doc.setFontSize(8);
-  doc.setTextColor(150);
-  doc.text("Thank you for supporting handcrafted products!", 105, 280, { align: "center" });
+    // Summary
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFont(undefined, 'bold');
+    doc.text(`Grand Total: INR ${order.totalAmount || order.amount || 0}`, 140, finalY);
 
-  doc.save(`Invoice_${order.orderId}.pdf`);
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text("Thank you for supporting handcrafted products!", 105, 280, { align: "center" });
+
+    doc.save(`Invoice_${order.orderId}.pdf`);
+  } catch (err) {
+    console.error("PDF Gen Error:", err);
+    alert("Could not generate PDF. Please contact support.");
+  }
 };
