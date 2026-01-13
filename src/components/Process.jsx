@@ -1,12 +1,12 @@
 import React from 'react';
-import { Shovel, Timer, ThermometerSun, Jar } from 'lucide-react';
+import { Shovel, Timer, ThermometerSun, PackageCheck } from 'lucide-react';
 
 const Process = () => {
   const steps = [
     { icon: <Shovel />, title: "Sourced", desc: "Hand-picked strawberries from local Mahabaleshwar farms at peak ripeness." },
     { icon: <Timer />, title: "Macerated", desc: "Fruits are left with sugar to release natural pectins—no artificial thickeners." },
     { icon: <ThermometerSun />, title: "Slow Cooked", desc: "Cooked in small batches in open kettles to preserve the vibrant color and flavor." },
-    { icon: <Jar />, title: "Hand Jarred", desc: "Every jar is inspected and filled by hand to ensure 74% fruit content." }
+    { icon: <PackageCheck />, title: "Hand Jarred", desc: "Every jar is inspected and filled by hand to ensure 74% fruit content." }
   ];
 
   return (
