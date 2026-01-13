@@ -131,6 +131,63 @@ const StatusBadge = ({ status }) => {
                 <div className="p-3 bg-orange-50 text-orange-600 rounded-lg h-fit"><Clock size={24}/></div>
             </div>
         </div>
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+    <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+        <h3 className="font-bold">Cloud Orders (Live)</h3>
+        {/* Added Search Input UI */}
+        <input 
+            type="text" 
+            placeholder="Search orders..." 
+            className="bg-slate-50 border border-slate-200 px-3 py-1 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-500 w-48"
+            onChange={(e) => setSearch(e.target.value)}
+        />
+    </div>
+    <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 text-slate-500 uppercase">
+                <tr>
+                    <th className="p-4">ID</th>
+                    <th className="p-4">Customer</th>
+                    <th className="p-4">Status</th> {/* NEW COLUMN */}
+                    <th className="p-4">Invoice</th>
+                    <th className="p-4 text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+                {/* 🔴 CHANGE: Use filteredOrders instead of orders */}
+                {filteredOrders.map((order) => (
+                    <tr key={order._id} className="hover:bg-slate-50 transition">
+                        <td className="p-4 font-mono text-slate-600">{order.orderId}</td>
+                        <td className="p-4 font-medium">{order.customerName}</td>
+                        
+                        {/* 🔴 CHANGE: Add Status Badge */}
+                        <td className="p-4">
+                            <StatusBadge status={order.status || 'Processing'} />
+                        </td>
+
+                        <td className="p-4">
+                            <button onClick={() => downloadInvoice(order)} className="text-blue-600 text-xs font-mono font-bold hover:underline flex items-center gap-1">
+                                <Download size={12}/> Invoice
+                            </button>
+                        </td>
+                        <td className="p-4 text-right">
+                            <button onClick={() => setSelectedOrder(order)} className="text-slate-400 hover:text-blue-600 transition">
+                                <Eye size={20} />
+                            </button>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+        
+        {/* Show message if search finds nothing */}
+        {filteredOrders.length === 0 && (
+            <div className="p-8 text-center text-slate-400">
+                No orders found matching "{search}"
+            </div>
+        )}
+    </div>
+</div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
