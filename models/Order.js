@@ -1,10 +1,14 @@
-// models/Order.js
 import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
+  // 1. New Fields Required for your App
+  orderId: { type: String, required: true, unique: true }, 
+  invoiceId: { type: String, required: true },
+  address: { type: String, required: true }, // <--- Added Address
+  
   customerName: { type: String, required: true },
-  // Format: 919876543210 (Country code + number, no '+')
   phoneNumber: { type: String, required: true },
+  
   items: [
     {
       productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
@@ -16,10 +20,10 @@ const OrderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered'], 
+    enum: ['Pending', 'Paid', 'Confirmed', 'Shipped', 'Delivered'], 
     default: 'Pending' 
   },
-  trackingId: { type: String, default: null }, // For Delhivery integration
+  trackingId: { type: String, default: null },
   createdAt: { type: Date, default: Date.now }
 });
 
