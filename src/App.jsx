@@ -16,72 +16,80 @@ import Invoice from './pages/Invoice';
 import NotFound from './pages/NotFound';
 import { Privacy, Terms, Refund } from './pages/Legal';
 
-// 1. HELPER COMPONENT TO HIDE NAVBAR ON ADMIN PAGES
+// HELPER: Main Content Wrapper
 const AppContent = () => {
   const location = useLocation();
+  
+  // Cart State with LocalStorage Persistence
   const [cartItems, setCartItems] = useState(() => {
-    const savedCart = localStorage.getItem("wefpro_cart");
-    return savedCart ? JSON.parse(savedCart) : [];
+    try {
+      const saved = localStorage.getItem("wefpro_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
   });
 
   useEffect(() => {
     localStorage.setItem("wefpro_cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
+  // Cart Actions
   const addToCart = (product) => {
-    const exist = cartItems.find((x) => x.id === product.id);
-    if (exist) {
-      setCartItems(cartItems.map((x) => x.id === product.id ? { ...exist, qty: exist.qty + 1, price: product.price } : x));
-    } else {
-      setCartItems([...cartItems, { ...product, qty: 1 }]);
-    }
+    setCartItems(prev => {
+      const exist = prev.find(x => x.id === product.id);
+      if (exist) {
+        return prev.map(x => x.id === product.id ? { ...exist, qty: exist.qty + 1 } : x);
+      }
+      return [...prev, { ...product, qty: 1 }];
+    });
   };
 
   const removeFromCart = (product) => {
-    const exist = cartItems.find((x) => x.id === product.id);
-    if (exist.qty === 1) {
-      setCartItems(cartItems.filter((x) => x.id !== product.id));
-    } else {
-      setCartItems(cartItems.map((x) => x.id === product.id ? { ...exist, qty: exist.qty - 1 } : x));
-    }
+    setCartItems(prev => {
+      const exist = prev.find(x => x.id === product.id);
+      if (exist.qty === 1) return prev.filter(x => x.id !== product.id);
+      return prev.map(x => x.id === product.id ? { ...exist, qty: exist.qty - 1 } : x);
+    });
   };
 
   const clearCart = () => setCartItems([]);
   const totalItems = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
-  // 🕵️‍♂️ CHECK: ARE WE ON AN ADMIN PAGE?
-  const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname === '/login';
+  // Hide Navbar on Admin/Login pages
+  const isNoNavRoute = location.pathname.startsWith('/admin') || location.pathname === '/login';
 
   return (
     <div className="bg-black min-h-screen text-stone-100 font-sans selection:bg-red-900 selection:text-white">
-      
-      {/* 2. ONLY SHOW NAVBAR IF NOT ADMIN */}
-      {!isAdminRoute && <Navbar cartCount={totalItems} />} 
+      {!isNoNavRoute && <Navbar cartCount={totalItems} />}
       
       <Routes>
         <Route path="/" element={<Home addToCart={addToCart} />} />
         <Route path="/cart" element={<Cart cartItems={cartItems} addToCart={addToCart} removeFromCart={removeFromCart} />} />
         <Route path="/checkout" element={<Checkout cartItems={cartItems} clearCart={clearCart} />} />
         <Route path="/track" element={<Tracking />} />
+        
+        {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
+        
+        {/* Utility Routes */}
         <Route path="/invoice/:id" element={<Invoice />} />
+        
+        {/* Legal Routes */}
         <Route path="/privacy" element={<Privacy />} />
-       <Route path="/terms" element={<Terms />} />
-       <Route path="/refund" element={<Refund />} />
-       <Route path="*" element={<NotFound />} /> {/* Catch-all 404 */}
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/refund" element={<Refund />} />
+        
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );
 };
 
-// 3. MAIN WRAPPER
-function App() {
+export default function App() {
   return (
     <Router>
       <AppContent />
     </Router>
   );
 }
-
-export default App;

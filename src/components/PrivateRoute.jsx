@@ -2,16 +2,11 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 const PrivateRoute = ({ children }) => {
-  // Check if the "admin_key" exists in the browser's memory
+  // UI Check: Does the user look logged in?
+  // Real security is enforced by the backend API cookies.
   const isAuthenticated = localStorage.getItem("wefpro_admin_key");
 
-  // If NO key, redirect to Login
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-
-  // If YES key, show the Admin Page
-  return children;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 export default PrivateRoute;

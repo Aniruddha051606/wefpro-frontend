@@ -15,12 +15,13 @@ const isAuthenticated = (req) => {
 export default async function handler(req, res) {
   await dbConnect();
 
+  // GET: Public (Frontend needs this to show price)
   if (req.method === 'GET') {
     const priceConfig = await Config.findOne({ key: 'product_price' });
     return res.status(200).json({ price: priceConfig?.value || 249 });
   }
 
-  // 🛡️ SECURE POST: Only Admins
+  // POST: Protected (Admins Only)
   if (req.method === 'POST') {
     if (!isAuthenticated(req)) return res.status(401).json({ error: "Unauthorized" });
 

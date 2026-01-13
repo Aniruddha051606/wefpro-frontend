@@ -5,14 +5,13 @@ export default function handler(req, res) {
 
   const { passcode } = req.body;
 
-  // 1. Check Password vs Environment Variable
+  // Verify against server-side environment variable
   if (passcode === process.env.ADMIN_PASSCODE) {
     
-    // 2. Set Secure Cookie
     const cookie = serialize('admin_token', process.env.JWT_SECRET, {
-      httpOnly: true, // JavaScript cannot read this (prevents XSS theft)
-      secure: process.env.NODE_ENV === 'production', // Only sends over HTTPS
-      sameSite: 'strict',
+      httpOnly: true,  // Cannot be accessed by JS (XSS protection)
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+      sameSite: 'strict', // CSRF protection
       maxAge: 60 * 60 * 24, // 1 Day
       path: '/',
     });
@@ -21,5 +20,5 @@ export default function handler(req, res) {
     return res.status(200).json({ success: true });
   }
 
-  return res.status(401).json({ error: "Invalid Passcode" });
+  return res.status(401).json({ error: "Unauthorized" });
 }

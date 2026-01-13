@@ -3,21 +3,29 @@ import mongoose from 'mongoose';
 
 const SubscriberSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
-  date: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now }
 });
 
-// Prevent model recompilation error
 const Subscriber = mongoose.models.Subscriber || mongoose.model('Subscriber', SubscriberSchema);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
+  
   await dbConnect();
 
   try {
-    await Subscriber.create({ email: req.body.email });
+    const { email } = req.body;
+    if (!email || !email.includes('@')) return res.status(400).json({ error: "Invalid Email" });
+
+    // Use findOneAndUpdate with upsert to prevent duplicates causing errors
+    await Subscriber.findOneAndUpdate(
+      { email },
+      { email },
+      { upsert: true, new: true }
+    );
+
     return res.status(200).json({ success: true });
   } catch (error) {
-    // Duplicate email is fine, just say success
-    return res.status(200).json({ success: true });
+    return res.status(500).json({ error: "Server Error" });
   }
 }
