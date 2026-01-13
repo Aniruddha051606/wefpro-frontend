@@ -1,3 +1,5 @@
+import React from 'react'; // Ensure React is imported if using JSX (depends on version, but safe to add)
+
 const Footer = () => (
   <footer className="bg-black text-stone-500 py-12 px-6 border-t border-stone-900">
     <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -25,3 +27,5 @@ const Footer = () => (
     </div>
   </footer>
 );
+
+export default Footer; // <--- THIS LINE WAS MISSING
