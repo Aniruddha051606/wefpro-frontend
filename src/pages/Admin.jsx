@@ -8,44 +8,47 @@ const Admin = () => {
   const [price, setPrice] = useState(249); 
   const [isSaving, setIsSaving] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [search, setSearch] = useState(""); // 1. Search State
   const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem("wefpro_admin_key");
     navigate("/login"); 
-  };// 1. Add Search State
-const [search, setSearch] = useState("");
-
-// 2. Filter logic
-const filteredOrders = orders.filter(o => 
-  o.customerName.toLowerCase().includes(search.toLowerCase()) || 
-  o.orderId.includes(search)
-);
-
-// 3. Status Badge Component
-const StatusBadge = ({ status }) => {
-  const colors = {
-    'Paid': 'bg-green-500/10 text-green-500 border-green-500/20',
-    'Processing': 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
-    'Shipped': 'bg-blue-500/10 text-blue-500 border-blue-500/20'
   };
-  return <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${colors[status]}`}>{status}</span>;
-};
+
+  // 2. Filter Logic
+  const filteredOrders = orders.filter(o => 
+    (o.customerName?.toLowerCase() || "").includes(search.toLowerCase()) || 
+    (o.orderId?.toLowerCase() || "").includes(search.toLowerCase())
+  );
+
+  // 3. Status Badge Component
+  const StatusBadge = ({ status }) => {
+    const colors = {
+      'Paid': 'bg-green-500/10 text-green-500 border-green-500/20',
+      'Processing': 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+      'Shipped': 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+    };
+    return (
+      <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${colors[status] || colors['Processing']}`}>
+        {status}
+      </span>
+    );
+  };
 
   const fetchData = async () => {
     try {
-      // 1. Fetch Price from Cloud
+      // Fetch Price from Cloud
       const priceRes = await fetch('/api/config');
       const priceData = await priceRes.json();
       if (priceData.price) setPrice(priceData.price);
 
-      // 2. Fetch Orders from MongoDB
+      // Fetch Orders from MongoDB
       const ordersRes = await fetch('/api/order');
       const ordersData = await ordersRes.json();
       if (ordersData.success) {
         setOrders(ordersData.data);
       } else {
-        // Fallback to local storage if API fails
         const storedOrders = localStorage.getItem("wefpro_orders");
         if (storedOrders) setOrders(JSON.parse(storedOrders));
       }
@@ -74,7 +77,6 @@ const StatusBadge = ({ status }) => {
     setTimeout(() => setIsSaving(false), 800);
   };
 
-  // Status updates should ideally be an API call too, but we'll keep this local for now
   const updateStatus = (orderId, newStatus) => {
     const updatedList = orders.map(order => order.orderId === orderId ? { ...order, status: newStatus } : order);
     setOrders(updatedList);
@@ -131,85 +133,42 @@ const StatusBadge = ({ status }) => {
                 <div className="p-3 bg-orange-50 text-orange-600 rounded-lg h-fit"><Clock size={24}/></div>
             </div>
         </div>
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-    <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-        <h3 className="font-bold">Cloud Orders (Live)</h3>
-        {/* Added Search Input UI */}
-        <input 
-            type="text" 
-            placeholder="Search orders..." 
-            className="bg-slate-50 border border-slate-200 px-3 py-1 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-500 w-48"
-            onChange={(e) => setSearch(e.target.value)}
-        />
-    </div>
-    <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500 uppercase">
-                <tr>
-                    <th className="p-4">ID</th>
-                    <th className="p-4">Customer</th>
-                    <th className="p-4">Status</th> {/* NEW COLUMN */}
-                    <th className="p-4">Invoice</th>
-                    <th className="p-4 text-right">Action</th>
-                </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-                {/* 🔴 CHANGE: Use filteredOrders instead of orders */}
-                {filteredOrders.map((order) => (
-                    <tr key={order._id} className="hover:bg-slate-50 transition">
-                        <td className="p-4 font-mono text-slate-600">{order.orderId}</td>
-                        <td className="p-4 font-medium">{order.customerName}</td>
-                        
-                        {/* 🔴 CHANGE: Add Status Badge */}
-                        <td className="p-4">
-                            <StatusBadge status={order.status || 'Processing'} />
-                        </td>
-
-                        <td className="p-4">
-                            <button onClick={() => downloadInvoice(order)} className="text-blue-600 text-xs font-mono font-bold hover:underline flex items-center gap-1">
-                                <Download size={12}/> Invoice
-                            </button>
-                        </td>
-                        <td className="p-4 text-right">
-                            <button onClick={() => setSelectedOrder(order)} className="text-slate-400 hover:text-blue-600 transition">
-                                <Eye size={20} />
-                            </button>
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-        
-        {/* Show message if search finds nothing */}
-        {filteredOrders.length === 0 && (
-            <div className="p-8 text-center text-slate-400">
-                No orders found matching "{search}"
-            </div>
-        )}
-    </div>
-</div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="p-6 border-b border-slate-100"><h3 className="font-bold">Cloud Orders (Live)</h3></div>
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 className="font-bold">Cloud Orders (Live)</h3>
+                    {/* 4. Search Bar UI */}
+                    <input 
+                        type="text" 
+                        placeholder="Search orders..." 
+                        className="bg-slate-50 border border-slate-200 px-3 py-1 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-500 w-48"
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-50 text-slate-500 uppercase">
                             <tr>
                                 <th className="p-4">ID</th>
                                 <th className="p-4">Customer</th>
+                                <th className="p-4">Status</th>
                                 <th className="p-4">Invoice</th>
                                 <th className="p-4 text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {orders.map((order) => (
+                            {/* 5. Filtered List Rendering */}
+                            {filteredOrders.map((order) => (
                                 <tr key={order._id} className="hover:bg-slate-50 transition">
                                     <td className="p-4 font-mono text-slate-600">{order.orderId}</td>
                                     <td className="p-4 font-medium">{order.customerName}</td>
                                     <td className="p-4">
-                                        <button onClick={() => downloadInvoice(order)} className="text-blue-600 text-xs font-mono font-bold">
-                                            {order.invoiceId || "Download"}
+                                        <StatusBadge status={order.status || 'Processing'} />
+                                    </td>
+                                    <td className="p-4">
+                                        <button onClick={() => downloadInvoice(order)} className="text-blue-600 text-xs font-mono font-bold hover:underline flex items-center gap-1">
+                                            <Download size={12}/> Invoice
                                         </button>
                                     </td>
                                     <td className="p-4 text-right">
@@ -221,6 +180,11 @@ const StatusBadge = ({ status }) => {
                             ))}
                         </tbody>
                     </table>
+                    {filteredOrders.length === 0 && (
+                        <div className="p-8 text-center text-slate-400">
+                            No orders found matching "{search}"
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -252,6 +216,13 @@ const StatusBadge = ({ status }) => {
                             <p className="font-bold text-lg">{selectedOrder.customerName}</p>
                             <p className="text-slate-600 flex items-center gap-2 mt-1"><Phone size={14}/> {selectedOrder.phoneNumber}</p>
                         </div>
+                    </div>
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <p className="text-slate-500 text-xs uppercase tracking-widest mb-2 flex items-center gap-2"><MapPin size={14}/> Shipping Address</p>
+                        <p className="text-slate-800 font-medium">
+                            {/* Handling potential missing address fields gracefully */}
+                            {selectedOrder.address ? selectedOrder.address : "Address not provided"}
+                        </p>
                     </div>
                     <div className="border-t border-slate-100 pt-4 flex justify-between font-bold text-lg">
                         <span>Total Amount</span><span>₹{selectedOrder.totalAmount}</span>
