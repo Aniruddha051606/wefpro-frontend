@@ -10,49 +10,52 @@ export const downloadInvoice = async (order) => {
     const darkSlate = [15, 23, 42];
     const textGray = [100, 116, 139];
 
-    // --- BARCODE GENERATION ---
-    // We use a robust barcode API to generate a Code128 barcode image of the Order ID
+    // --- 🟢 NEW: BARCODE GENERATION ---
+    // This generates a scannable Barcode image for the Order ID
     const barcodeUrl = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${order.orderId}&scale=3&height=10&includetext`;
     
-    // Convert image URL to Base64 (Required for jsPDF)
+    // Helper to load image
     const getBase64ImageFromURL = async (url) => {
-        const res = await fetch(url);
-        const blob = await res.blob();
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(blob);
-        });
+        try {
+            const res = await fetch(url);
+            const blob = await res.blob();
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        } catch (e) { return null; }
     };
 
-    // Add Barcode to Top Right
-    try {
-        const barcodeImg = await getBase64ImageFromURL(barcodeUrl);
-        doc.addImage(barcodeImg, 'PNG', 150, 10, 45, 15); // x, y, width, height
-    } catch (e) {
-        console.warn("Barcode failed to load", e);
+    // Draw Barcode at Top Right
+    const barcodeImg = await getBase64ImageFromURL(barcodeUrl);
+    if (barcodeImg) {
+        doc.addImage(barcodeImg, 'PNG', 140, 10, 50, 15); // x, y, width, height
     }
 
-    // --- EXISTING INVOICE DESIGN ---
+    // --- STANDARD INVOICE DESIGN ---
+    // Header Line
     doc.setDrawColor(...brandRed);
     doc.setLineWidth(2);
     doc.line(0, 0, 210, 0);
 
+    // Brand Name
     doc.setFont("helvetica", "bold");
     doc.setFontSize(28);
     doc.setTextColor(...darkSlate);
     doc.text("WEFPRO", 14, 25);
 
+    // Company Info
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.setTextColor(...textGray);
     doc.text("Handcrafted in Mahabaleshwar", 14, 32);
     doc.text("FSSAI Lic No: 215XXXXXXXXXXX", 14, 37);
 
-    // Invoice Details
+    // Invoice Details (Right Side)
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...darkSlate);
-    doc.text("INVOICE", 195, 35, { align: "right" }); // Moved down slightly for barcode
+    doc.text("INVOICE", 195, 35, { align: "right" });
     
     doc.setFont("helvetica", "normal");
     doc.setTextColor(0);
@@ -60,7 +63,7 @@ export const downloadInvoice = async (order) => {
     doc.setTextColor(...textGray);
     doc.text(`Date: ${new Date(order.createdAt || Date.now()).toLocaleDateString()}`, 195, 47, { align: "right" });
 
-    // Bill To Section
+    // Bill To Box
     doc.setFillColor(248, 250, 252);
     doc.rect(14, 55, 182, 35, 'F'); 
 
@@ -79,6 +82,7 @@ export const downloadInvoice = async (order) => {
     doc.setTextColor(...darkSlate);
     doc.text(String(order.phoneNumber || ''), 20, 75);
     
+    // Address Wrap
     const safeAddress = String(order.address || 'Address not provided');
     const addressLines = doc.splitTextToSize(safeAddress, 140);
     doc.text(addressLines, 20, 80);
@@ -101,6 +105,7 @@ export const downloadInvoice = async (order) => {
       alternateRowStyles: { fillColor: [250, 250, 250] }
     });
 
+    // Totals
     const finalY = (doc.lastAutoTable?.finalY || 100) + 10;
     const safeTotal = parseFloat(order.totalAmount || order.amount || 0);
     
