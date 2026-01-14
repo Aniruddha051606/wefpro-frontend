@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-
+import Dispatch from './pages/Dispatch';
 // COMPONENTS
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
@@ -16,6 +16,7 @@ import Invoice from './pages/Invoice';
 import OrderSuccess from './pages/OrderSuccess'; // <--- NEW
 import NotFound from './pages/NotFound';
 import { Privacy, Terms, Refund } from './pages/Legal';
+
 
 const AppContent = () => {
   const location = useLocation();
@@ -67,6 +68,7 @@ const AppContent = () => {
         <Route path="/terms" element={<Terms />} />
         <Route path="/refund" element={<Refund />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/admin/dispatch" element={<PrivateRoute><Dispatch /></PrivateRoute>} />
       </Routes>
     </div>
   );
